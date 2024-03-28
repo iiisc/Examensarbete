@@ -16,10 +16,6 @@ def readPdf(file):
 def home():
    return render_template('index.html')
 
-@app.route('/test', methods=['GET'])
-def test():
-    return "Hello"
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
         if 'file' not in request.files:
@@ -28,8 +24,13 @@ def upload_file():
         file = request.files['file']
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
 
-        path = os.path.join("Uploads", file.filename)
-        return(readPdf(path))
+        filepath = os.path.join("Uploads", file.filename)
+        extension = os.path.splitext(filepath)[-1]
+        
+        if extension == '.pdf':
+            return(readPdf(filepath))
+        
+        return("File uploaded")
 
 if __name__ == '__main__':
     app.run()
