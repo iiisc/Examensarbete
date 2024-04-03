@@ -22,14 +22,17 @@ train_x=[]
 train_y=[]
 #skriver ut rad för rad
 
+#Lägger till både category och title
 for index, col in df_fylld.iterrows():
     if col[0]!=0:
         print("LOOP")
-        print("Första  ",col[0])
-        print("Andra  ",col[1])
+        tempSmallLettersTitle=str(col[0]).lower()
+        tempSmallLettersCategory=str(col[1]).lower()
+        print("Första  ", tempSmallLettersTitle)
+        print("Andra  ",tempSmallLettersCategory)
         #kollar excelfilen och plockar yrkestitel med och parar det med ett personlighetsattribut
-        train_x.append(col[0])
-        temp_y="Category."+str(col[1])
+        train_x.append(tempSmallLettersTitle)
+        temp_y="Category."+tempSmallLettersCategory
         train_y.append(temp_y)
 
 
@@ -40,7 +43,7 @@ from sklearn import svm
 clf_svm=svm.SVC(kernel='linear')
 #print(clf_svm)
 #Tranar och testar datan
-testText="jag ar en konstnar"
+testText="jag ar en idrottare"
 clf_svm.fit(train_x_vectors, train_y)
 test_x=vectorizer.transform([testText])
 utskrift=clf_svm.predict(test_x)
