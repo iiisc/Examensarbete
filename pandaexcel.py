@@ -1,6 +1,22 @@
 import pandas
 from sklearn.feature_extraction.text import CountVectorizer
 
+from PyPDF2 import PdfReader
+
+pdf_path = 'CV.pdf'
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+listOfTitles=[]
+
+
+
+
+
+procentOfAquarize=1
+choosenSkill="teknisk"
+score=0
+
+
 class Category:
     CREATIVE="Kreativ"
     METICULOUS="Noggrann"
@@ -34,6 +50,8 @@ for index, col in df_fylld.iterrows():
         train_x.append(tempSmallLettersTitle)
         temp_y="Category."+tempSmallLettersCategory
         train_y.append(temp_y)
+        #FYller lista med titlar
+        listOfTitles.append(tempSmallLettersTitle)
 
 
 vectorizer=CountVectorizer(binary=True, ngram_range=(1,2))
@@ -43,10 +61,59 @@ from sklearn import svm
 clf_svm=svm.SVC(kernel='linear')
 #print(clf_svm)
 #Tranar och testar datan
+
+
 testText="jag ar en idrottare"
+
+
+
 clf_svm.fit(train_x_vectors, train_y)
 test_x=vectorizer.transform([testText])
 utskrift=clf_svm.predict(test_x)
 print(testText)
 print(utskrift)
 #print(test_x.toarray())
+
+
+
+
+##FÖRSTA UTKAST PÅ ETT ENKELT POÄNGSYSTEM
+
+""" for i in page.extract_text():
+    testText=input("Jobbtitel: ")
+    clf_svm.fit(train_x_vectors, train_y)
+    test_x=vectorizer.transform([testText])
+    utskrift=clf_svm.predict(test_x)
+    print(testText)
+    print(utskrift)
+    if(utskrift==f"Category.{choosenSkill}"):
+        print("poäng")
+        score=score+1
+    #print(test_x.toarray())
+
+print(f"Poäng på attributet {choosenSkill} är {score}") """
+
+##FÖRSTA UTKAST PÅ ETT ENKELT POÄNGSYSTEM som läser in ord från ett PDF och räknar antalet vars kategori stämmer överens
+#print(page.extract_text())
+
+test=page.extract_text()
+
+for i in listOfTitles:
+    print(f"Lista av titlar: {i}")
+
+for i in test.split():
+    print("___________________________________________________________________________")
+    testText=i
+    #print(f"i är : {i}")
+    if i.lower() in listOfTitles:
+        clf_svm.fit(train_x_vectors, train_y)
+        test_x=vectorizer.transform([testText])
+        utskrift=clf_svm.predict(test_x)
+        print(testText)
+        print(utskrift)
+        if(utskrift==f"Category.{choosenSkill}"):
+            print("poäng")
+            score=score+1
+        #print(test_x.toarray())
+
+print(f"Poäng på attributet {choosenSkill} är {score}")
