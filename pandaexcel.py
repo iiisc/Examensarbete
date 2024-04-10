@@ -7,19 +7,18 @@ pdf_path = 'CV.pdf'
 reader = PdfReader(pdf_path)
 page = reader.pages[0]
 listOfTitles=[]
-
+class Category:
+    CREATIVE="objekt"
 
 
 
 
 procentOfAquarize=1
-choosenSkill="teknisk"
+choosenSkill="test"
 score=0
 
 
-class Category:
-    CREATIVE="Kreativ"
-    METICULOUS="Noggrann"
+
 
 
 
@@ -96,22 +95,25 @@ print(f"Poäng på attributet {choosenSkill} är {score}") """
 ##FÖRSTA UTKAST PÅ ETT ENKELT POÄNGSYSTEM som läser in ord från ett PDF och räknar antalet vars kategori stämmer överens
 #print(page.extract_text())
 
-test=page.extract_text()
+CV=page.extract_text()
 
 for i in listOfTitles:
     print(f"Lista av titlar: {i}")
 
-for i in test.split():
-    print("___________________________________________________________________________")
-    testText=i
+for i in CV.split():
+    #print("___________________________________________________________________________")
+   
     #print(f"i är : {i}")
     if i.lower() in listOfTitles:
+        testText=i
         clf_svm.fit(train_x_vectors, train_y)
         test_x=vectorizer.transform([testText])
         utskrift=clf_svm.predict(test_x)
-        print(testText)
+        print("___________________________________________________________________________")
+
+        print(i)
         print(utskrift)
-        if(utskrift==f"Category.{choosenSkill}"):
+        if(utskrift==f"Category.{choosenSkill}" ):
             print("poäng")
             score=score+1
         #print(test_x.toarray())
