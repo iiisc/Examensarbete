@@ -13,7 +13,7 @@ from sklearn.svm import LinearSVC
 from sklearn.multiclass import OneVsRestClassifier
 multilabel = MultiLabelBinarizer()
 
-dataframe=pd.read_excel('test.xlsx')
+dataframe=pd.read_excel('testfil2.xlsx')
 print(dataframe.head())
 #print(dataframe['Attribut'].iloc[0])         
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
@@ -25,10 +25,14 @@ print(type(dataframe['Attribut'].iloc[0]))
 
 # Rensa och konvertera data till listor av strängar
 def clean_and_convert_to_list(text):
-    if text.startswith('[') and text.endswith(']'):
-        text = text[1:-1]  # Ta bort hakparenteser
-    return [item.strip() for item in text.split(',')]
-
+    # Kontrollerar först om 'text' är en sträng
+    if isinstance(text, str):
+        if text.startswith('[') and text.endswith(']'):
+            text = text[1:-1]  # Tar bort hakparenteserna
+        return [item.strip() for item in text.split(',')]
+    else:
+        # Returnerar en tom lista om text inte är en sträng
+        return []
 # Applicera funktionen på Attribut-kolumnen
 dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
 
@@ -52,7 +56,7 @@ print(pd.DataFrame(y,columns=multilabel.classes_))
 print("----------------Bygga model------------------")
 dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
 tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words='english')
-X = tfidf.fit_transform(dataframe['Title'])
+X = tfidf.fit_transform(dataframe['Yrkestitel'])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
 sgd = SGDClassifier()
@@ -89,10 +93,10 @@ print("----------------------------testa model----------------------")
 
 
 
-x=['webbutvecklare']
+x=['chef']
 
 print(x)
-print(multilabel.classes_)
+#print(multilabel.classes_)
 xt=tfidf.transform(x)
 print(clf.predict(xt))
 
@@ -105,11 +109,11 @@ print("Utskrift------------",clf.predict(xt))
 
 
 
-print("-------------------------------------debugg------------------------")
+""" print("-------------------------------------debugg------------------------")
 print("Etikettklasser:", multilabel.classes_)
 target_label = multilabel.classes_[4]
 print("Etikett för index 4:", target_label)
 dataframe['has_target_label'] = np.array(y)[:, 4] == 1  # Index 4 är den etikett vi undersöker
 filtered_examples = dataframe[dataframe['has_target_label']]
 print("Exempel med etiketten '{}':".format(target_label))
-print(filtered_examples)
+print(filtered_examples) """
