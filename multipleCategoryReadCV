@@ -13,11 +13,28 @@ from sklearn.svm import LinearSVC
 from sklearn.multiclass import OneVsRestClassifier
 multilabel = MultiLabelBinarizer()
 
+from PyPDF2 import PdfReader
+
+pdf_path = 'CV.pdf'
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+
+listOfTitles=[]
+
+
+
+
+
+
+
 dataframe=pd.read_excel('testfil2.xlsx')
 print(dataframe.head())
 #print(dataframe['Attribut'].iloc[0])         
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 print(dataframe['Attribut'].iloc[0])
+for i in dataframe['Yrkestitel']:
+   listOfTitles.append(dataframe['Yrkestitel'])
+
 
 print("y= -------------------")
 print(type(dataframe['Attribut'].iloc[0]))
@@ -92,15 +109,17 @@ print("----------------------------testa model----------------------")
 
 
 
-
-x=['chef']
-
+CV=page.extract_text()
+print(f"CV är : {type(CV)}")
+#x=[CV]
+x=CV.split()
 print(x)
 #print(multilabel.classes_)
 xt=tfidf.transform(x)
 print(clf.predict(xt))
+attributesFromCV=multilabel.inverse_transform(clf.predict(xt))
+#print(attributesFromCV)
 
-print(multilabel.inverse_transform(clf.predict(xt)))
 
 
 print("Utskrift------------",clf.predict(xt))
@@ -118,7 +137,40 @@ filtered_examples = dataframe[dataframe['has_target_label']]
 print("Exempel med etiketten '{}':".format(target_label))
 print(filtered_examples) """
 
+print("------------------------------Läsa CV--------------------")
 
+CV=page.extract_text()
+wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
+listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
+listatest=[]
+for i in listOfAttributeCleaned:
+   listatest.append(i)
+score=0
+rensat = [s.strip("()") for s in listOfAttributeCleaned]
+print(rensat)
+ord_lista = [ord for s in rensat for ord in s.split(" ")]
+
+# Slå ihop alla ord till en enda sträng
+sammanhangande_strang = " ".join(ord_lista)
+
+
+for i in rensat:
+    print("___________________________________________________________________________")
+    print(i)
+    print(type(i))
+
+    #print(f"i är : {i}")
+    for a in wantedAttributes:
+        if a in i:
+            print(f"skriver ut i {a}")
+            
+        
+            print("___________________________________________________________________________")
+            print("poäng")
+            score=score+1
+      
+
+print(f"Poäng på attributet {wantedAttributes} är {score}")
 
 
 
