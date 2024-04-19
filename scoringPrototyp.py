@@ -25,15 +25,11 @@ listOfTitles=[]
 
 
 dataframe=pd.read_excel('testfil2.xlsx')
-#print(dataframe['Attribut'].iloc[0])         
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
-print(dataframe['Attribut'].iloc[0])
 for i in dataframe['Yrkestitel']:
    listOfTitles.append(dataframe['Yrkestitel'])
 
 
-print("y= -------------------")
-print(type(dataframe['Attribut'].iloc[0]))
 
 
 # Rensa och konvertera data till listor av strängar
@@ -54,17 +50,11 @@ dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 #dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ast.literal_eval(x))
 y=dataframe['Attribut']
-print(y)
-print("---------Träning---------")
+
+
 #Träning
 y = multilabel.fit_transform(dataframe['Attribut'])
-print(y)
 
-print("-----------multilabel classer________________________------")
-print(multilabel.classes_)
-
-print("---------------------uppradat------------------------")
-print(pd.DataFrame(y,columns=multilabel.classes_))
 
 print("----------------Bygga model------------------")
 dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
@@ -105,20 +95,21 @@ print("----------------------------testa model----------------------")
 
 
 
-
 print("------------------------------Läsa CV--------------------")
 while(1):
 
     
-    pdf_path=input("Välj pdf")
+    pdf_path=input("Välj pdf: ")
     pdf_path = pdf_path+'.pdf'
+    wholeDocument=""
     reader = PdfReader(pdf_path)
-    page = reader.pages[0]
-
-
-
-    CV=page.extract_text()
-    print(f"CV är : {type(CV)}")
+    #page = reader.pages[1]
+    for sida in reader.pages:
+      wholeDocument+=sida.extract_text()+'\n'
+  
+    print(f"PDF format i sträng {wholeDocument}")
+    CV=wholeDocument
+    #CV=page.extract_text()
     #x=[CV]
     x=CV.split()
     print(x)
@@ -131,7 +122,7 @@ while(1):
 
 
 
-    CV=page.extract_text()
+   # CV=page.extract_text()
     wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
     listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
     listatest=[]
@@ -142,8 +133,11 @@ while(1):
     print("---------------------------------------------------------------------------------------------")
     setOfAttributes={s for s in listOfAttributeCleaned}
     print(type(setOfAttributes))
-
+    setOfAttributes2=[]
     print(f"Set of attributes {setOfAttributes}")
+    for i in setOfAttributes:
+       if i in wantedAttributes:
+          setOfAttributes2.append(i)
 
     for i in listOfAttributeCleaned:
         print("___________________________________________________________________________")
@@ -160,8 +154,9 @@ while(1):
                 print("poäng")
                 score=score+1
         
-    procentOfAttributes=(len(wantedAttributes)/len(listOfAttributeCleaned))*100
-
+    procentOfAttributes=(len(wantedAttributes)/len(setOfAttributes))*100
+    print(len(wantedAttributes))
+    print(len(setOfAttributes))
     print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {score}")
     print(f"Andel av attributen som uppfylls {procentOfAttributes} %")
 
