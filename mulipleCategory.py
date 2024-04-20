@@ -93,7 +93,7 @@ print("----------------------------testa model----------------------")
 
 
 
-x=['chef']
+x=['Cafébiträde ']
 
 print(x)
 #print(multilabel.classes_)

@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import ast
+import os
+import re
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -28,7 +30,8 @@ dataframe=pd.read_excel('testfil2.xlsx')
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 for i in dataframe['Yrkestitel']:
    listOfTitles.append(dataframe['Yrkestitel'])
-
+print(f"LISTOFTITLES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::{listOfTitles}")
+  
 
 
 
@@ -90,75 +93,91 @@ for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
 
 
 
-print("----------------------------testa model----------------------")
 
 
+print(multilabel.classes_)
 
+def koppladeattributefun(text,attribute):
+   pattern=r'\b('+'|'.join(re.escape(attri) for attri in attribute)+r')\b'
+   matches =re.findall(pattern,text,flags=re.IGNORECASE)
+   return ', '.join(sorted(set(matches),key=matches.index))
 
 print("------------------------------Läsa CV--------------------")
-while(1):
+while(input("Avsluta? ")!='j'):
+  pdfFilePath="./uploads/"
+  for files in os.listdir(pdfFilePath):
+    if files.endswith('.pdf'):
+      pdfPath =pdfFilePath+files  
+      print(f"Namn på fil {files}")
+      #pdf_path = pdf_path+'.pdf'
+      wholeDocument=""
+      print(pdfPath)
+      reader = PdfReader(pdfPath)
+      #page = reader.pages[1]
+      for sida in reader.pages:
+        wholeDocument+=sida.extract_text()+'\n'
 
     
-    pdf_path=input("Välj pdf: ")
-    pdf_path = pdf_path+'.pdf'
-    wholeDocument=""
-    reader = PdfReader(pdf_path)
-    #page = reader.pages[1]
-    for sida in reader.pages:
-      wholeDocument+=sida.extract_text()+'\n'
-  
-    print(f"PDF format i sträng {wholeDocument}")
-    CV=wholeDocument
-    #CV=page.extract_text()
-    #x=[CV]
-    x=CV.split()
-    print(x)
-    #print(multilabel.classes_)
-    xt=tfidf.transform(x)
-    print(clf.predict(xt))
-    attributesFromCV=multilabel.inverse_transform(clf.predict(xt))
-    #print(attributesFromCV)
 
+     # print(f"PDF format i sträng {wholeDocument}")
+      CV=wholeDocument
+      #CV=page.extract_text()
+      #x=[CV]
+      x=CV.split()
+    #  print(x)
+      #print(multilabel.classes_)
+      xt=tfidf.transform(x)
+      print(f"predicted {clf.predict(xt)}")
+      attributesFromCV=multilabel.inverse_transform(clf.predict(xt))
+      print(f"attribute :------------------------{attributesFromCV}")
 
-
-
-   # CV=page.extract_text()
-    wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
-    listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
-    listatest=[]
-
-    score=0
-    listOfAttributeCleaned = [s.strip("()") for s in listOfAttributeCleaned]
-    print(listOfAttributeCleaned)
-    print("---------------------------------------------------------------------------------------------")
-    setOfAttributes={s for s in listOfAttributeCleaned}
-    print(type(setOfAttributes))
-    setOfAttributes2=[]
-    print(f"Set of attributes {setOfAttributes}")
-    for i in setOfAttributes:
-       if i in wantedAttributes:
-          setOfAttributes2.append(i)
-
-    for i in listOfAttributeCleaned:
-        print("___________________________________________________________________________")
-        print(i)
-        print(type(i))
-
-        #print(f"i är : {i}")
-        for a in wantedAttributes:
-            if a in i:
-                print(f"skriver ut i {a}")
-                
-            
-                print("___________________________________________________________________________")
-                print("poäng")
-                score=score+1
+      for i, labels in enumerate(attributesFromCV):
         
-    procentOfAttributes=(len(wantedAttributes)/len(setOfAttributes))*100
-    print(len(wantedAttributes))
-    print(len(setOfAttributes))
-    print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {score}")
-    print(f"Andel av attributen som uppfylls {procentOfAttributes} %")
+        print(f"input {i}: Med texten:  {x[i]}  ges attributet:")
+        print(f": {' '.join(labels)}'")
+         
+      
+
+
+    # CV=page.extract_text()
+      wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
+      listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
+      listatest=[]
+
+      score=0
+      
+      listOfAttributeCleaned = [s.strip('()"').replace("'",',') for s in listOfAttributeCleaned]
+      print(f"lista med attribute {listOfAttributeCleaned}")
+      print("---------------------------------------------------------------------------------------------")
+      setOfAttributes={s.strip("(),'").replace(',',"") for s in listOfAttributeCleaned}
+      print(type(setOfAttributes))
+      for i in setOfAttributes:
+         print(f"Skriver ut i {i}")
+      setOfAttributes2=[]
+      print(f"Set of attributes {setOfAttributes}")
+      for i in setOfAttributes:
+        if i in wantedAttributes:
+            setOfAttributes2.append(i)
+      for i in listOfAttributeCleaned:
+          #print("___________________________________________________________________________")
+          #print(i)
+          #print(type(i))
+
+          #print(f"i är : {i}")
+          for a in wantedAttributes:
+              if a in i:
+                  print(f"skriver ut i {a}")
+                  
+              
+                  print("___________________________________________________________________________")
+                  print("poäng")
+                  score=score+1
+          
+      procentOfAttributes=(len(setOfAttributes)/len(wantedAttributes))*100
+      print(len(wantedAttributes))
+      print(len(setOfAttributes))
+      print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {score}")
+      print(f"Andel av attributen som uppfylls {procentOfAttributes} %")
 
 
 

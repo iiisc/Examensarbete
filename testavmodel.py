@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import ast
 
+from fuzzywuzzy import process
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -13,28 +15,11 @@ from sklearn.svm import LinearSVC
 from sklearn.multiclass import OneVsRestClassifier
 multilabel = MultiLabelBinarizer()
 
-from PyPDF2 import PdfReader
-
-pdf_path = 'CV.pdf'
-reader = PdfReader(pdf_path)
-page = reader.pages[0]
-
-listOfTitles=[]
-
-
-
-
-
-
-
 dataframe=pd.read_excel('testfil2.xlsx')
 print(dataframe.head())
 #print(dataframe['Attribut'].iloc[0])         
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 print(dataframe['Attribut'].iloc[0])
-for i in dataframe['Yrkestitel']:
-   listOfTitles.append(dataframe['Yrkestitel'])
-
 
 print("y= -------------------")
 print(type(dataframe['Attribut'].iloc[0]))
@@ -50,10 +35,9 @@ def clean_and_convert_to_list(text):
     else:
         # Returnerar en tom lista om text inte är en sträng
         return []
+    
 # Applicera funktionen på Attribut-kolumnen
 dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
-
-
 
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 #dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ast.literal_eval(x))
@@ -65,18 +49,44 @@ y = multilabel.fit_transform(dataframe['Attribut'])
 print(y)
 
 print("-----------multilabel classer________________________------")
-print(multilabel.classes_)
-print(f"längd på multilevelclasses {len(multilabel.classes_)}")
+#print(multilabel.classes_)
 
 print("---------------------uppradat------------------------")
 print(pd.DataFrame(y,columns=multilabel.classes_))
+listOfTitlesAfterProcessing=[]
 
-print("----------------Bygga model------------------")
+for i in dataframe['Yrkestitel']:
+   listOfTitlesAfterProcessing.append(i.replace("inom", ""))
+myfile=open("stoplista.txt","r",encoding='utf-8')
+
+
+print("--------------------------------------------------------SKAPA STOPLISTA---------------------------------------------------------------------------------------------------------")
+
+stoplistVectorizer=TfidfVectorizer(lowercase=True)
+
+stopList=[]
+for line in myfile:
+   
+    data=myfile.readline()
+    stopList.append(data)
+myfile.close() 
+
+stoplistVectorizer.fit(stopList)
+tokenizedStopWords=stoplistVectorizer.get_feature_names_out()
+
+#print(tokenizedStopWords)
+tokenizedStopWords=tokenizedStopWords.tolist()
+
+
+print(f"Type av dataframe {type(dataframe['Yrkestitel'])}")
+print("--------------------------------------------------------Bygga model---------------------------------------------------------------------")
 dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
-tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words='english')
+tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,2), stop_words=tokenizedStopWords, lowercase=True, )
 X = tfidf.fit_transform(dataframe['Yrkestitel'])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
-
+for words in tfidf.vocabulary_:
+    print(f"valda ord för tokenizer {words}") 
+print(f"Längd på lista av vocabluary {len(tfidf.vocabulary_)}")
 sgd = SGDClassifier()
 lr = LogisticRegression(solver='lbfgs')
 svc = LinearSVC()
@@ -91,13 +101,13 @@ def print_score(y_pred, clf):
   print('Jacard score: {}'.format(j_score(y_test, y_pred)))
   print('----')
 
-for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
+for classifier in [LinearSVC(C=99999999999999999999,penalty='l2', dual=False, multi_class="ovr", verbose=10)]:
   clf = OneVsRestClassifier(classifier)
   clf.fit(X_train, y_train)
   y_pred = clf.predict(X_test)
   print_score(y_pred, classifier)
 
-for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
+for classifier in [LinearSVC(C=99999999999999999999,penalty='l2', dual=False)]:
   clf = OneVsRestClassifier(classifier)
   clf.fit(X_train, y_train)
   y_pred = clf.predict(X_test)
@@ -105,30 +115,43 @@ for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
 
 
 
+
+
 print("----------------------------testa model----------------------")
 
+antaltitlar=0
+counter=0
+
+for titlar in dataframe['Yrkestitel']:
+    antaltitlar=antaltitlar+1
+
+    x=[titlar]
+
+    #print(x)
+    #print(multilabel.classes_)
+    xt=tfidf.transform(x)
+    #print(clf.predict(xt))
+    temp=multilabel.inverse_transform(clf.predict(xt))
+
+    #print(multilabel.inverse_transform(clf.predict(xt)))
+    if len(temp[0])==0:
+       counter=counter+1
+       print(f"Har inte kopplats: {titlar}")
+    else:
+       print(f"Har kopplats: {titlar}")
+    #print("Utskrift------------",clf.predict(xt))
+    #print("_____________________________________________________________________________________________________________________________________")
 
 
+print(f"Antal fel {counter} i procent {(counter/antaltitlar)*100} totalt finns det {antaltitlar} titlar")
+x=['Systemutvecklare']
 
-CV=page.extract_text()
-print(f"CV är : {type(CV)}")
-#x=[CV]
-x=CV.split()
-print(x)
+#print(x)
 #print(multilabel.classes_)
 xt=tfidf.transform(x)
-print(clf.predict(xt))
-attributesFromCV=multilabel.inverse_transform(clf.predict(xt))
-#print(attributesFromCV)
-
-
-
-print("Utskrift------------",clf.predict(xt))
-
-
-
-
-
+#print(clf.predict(xt))
+temp=multilabel.inverse_transform(clf.predict(xt))
+print(temp)
 """ print("-------------------------------------debugg------------------------")
 print("Etikettklasser:", multilabel.classes_)
 target_label = multilabel.classes_[4]
@@ -138,40 +161,7 @@ filtered_examples = dataframe[dataframe['has_target_label']]
 print("Exempel med etiketten '{}':".format(target_label))
 print(filtered_examples) """
 
-print("------------------------------Läsa CV--------------------")
 
-CV=page.extract_text()
-wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
-listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
-listatest=[]
-for i in listOfAttributeCleaned:
-   listatest.append(i)
-score=0
-rensat = [s.strip("()") for s in listOfAttributeCleaned]
-print(rensat)
-ord_lista = [ord for s in rensat for ord in s.split(" ")]
-
-# Slå ihop alla ord till en enda sträng
-sammanhangande_strang = " ".join(ord_lista)
-
-
-for i in rensat:
-    print("___________________________________________________________________________")
-    print(i)
-    print(type(i))
-
-    #print(f"i är : {i}")
-    for a in wantedAttributes:
-        if a in i:
-            print(f"skriver ut i {a}")
-            
-        
-            print("___________________________________________________________________________")
-            print("poäng")
-            score=score+1
-      
-
-print(f"Poäng på attributet {wantedAttributes} är {score}")
 
 
 
