@@ -14,6 +14,8 @@
                 Upload
             </button>
         </form>
-        <div id='test' hx-get="/get_files" hx-trigger="every 2s, load"></div>
+        <div id='uploadedFiles' hx-get="/get_files" hx-trigger="every 2s, load"></div>
+        <div id='scoredFiles' hx-get="/score" hx-trigger="click">Click Me!</div>
+
     </body>
 </html>

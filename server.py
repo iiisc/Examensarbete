@@ -1,4 +1,6 @@
 import os
+import json
+import pandas as pd
 from flask import Flask, render_template, request, redirect
 from PyPDF2 import PdfReader
 
@@ -33,10 +35,29 @@ def upload_file():
 
         return redirect(request.url)
 
+@app.route()
+
+@app.route('/score', methods=['GET'])
+def get_score():
+    allCV = { 
+        "CarlsCV": {"Score": 10, "PercentScore": 0.3},
+        "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
+        "RandomCV": {"Score": 1, "PercentScore": 0.1}
+    }
+
+    ## Convert nested dict to JSON
+    jsonDict = json.dumps(allCV)
+
+    df = pd.DataFrame.from_dict(allCV, orient='index')
+    df_html = df.to_html()
+    return render_template('table.html', table_html = df_html)
+
 @app.route('/get_files', methods=['GET'])
 def get_files():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
-    return all_files
+    df = pd.DataFrame({'Uploaded files:' : all_files})
+    df_html = df.to_html(index = False)
+    return render_template('table.html', table_html = df_html)
 
 if __name__ == '__main__':
     app.run()
