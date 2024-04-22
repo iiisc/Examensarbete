@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import ast
 
-from fuzzywuzzy import process
+
 from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -146,7 +146,7 @@ logres2=LogisticRegression(solver="liblinear",multi_class='ovr',penalty='l2',C=1
 while(1):
 
   c=input("Välj C ")
-  linres3=LinearSVC(C=int(c),penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
+  linres3=LinearSVC(C=float(c),penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
   logres3=LogisticRegression(solver="newton-cg",penalty='l2',C=10)
 
   linres4=LinearSVC(C=10,penalty='l1', dual=False, class_weight="balanced" ,multi_class="ovr" ) ##BARA 3 FEL!!!!!!!!
@@ -160,7 +160,6 @@ while(1):
   classifiers=[linres3]
 
 
-  print("----------------------------testa model----------------------")
 
   antaltitlar=0
   counter=0

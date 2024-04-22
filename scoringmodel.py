@@ -4,6 +4,7 @@ import ast
 import os
 import re
 
+import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -14,9 +15,8 @@ from sklearn.svm import LinearSVC
 
 from sklearn.multiclass import OneVsRestClassifier
 multilabel = MultiLabelBinarizer()
-
+allCV={}
 from PyPDF2 import PdfReader
-
 
 listOfTitles=[]
 myfile=open("stoplista.txt","r",encoding='utf-8')
@@ -34,6 +34,7 @@ myfile.close()
 stoplistVectorizer.fit(stopList)
 tokenizedStopWords=stoplistVectorizer.get_feature_names_out()
 
+#print(tokenizedStopWords)
 tokenizedStopWords=tokenizedStopWords.tolist()
 
 
@@ -41,6 +42,7 @@ tokenizedStopWords=tokenizedStopWords.tolist()
 
 
 dataframe=pd.read_excel('testfil2.xlsx')
+#ast.literal_eval(dataframe['Attribut'].iloc[0])
 for i in dataframe['Yrkestitel']:
    listOfTitles.append(dataframe['Yrkestitel'])
 print(f"LISTOFTITLES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::{listOfTitles}")
@@ -62,6 +64,9 @@ def clean_and_convert_to_list(text):
 dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
 
 
+
+#ast.literal_eval(dataframe['Attribut'].iloc[0])
+#dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ast.literal_eval(x))
 y=dataframe['Attribut']
 
 
@@ -103,6 +108,8 @@ while(input("Avsluta? ")!='j'):
   print("------------------------------Läsa CV--------------------")
   pdfFilePath="./uploads/"
   for files in os.listdir(pdfFilePath):
+    numberOfExclusiveHitsForProcent=0
+
     if files.endswith('.pdf'):
       pdfPath =pdfFilePath+files  
       print(f"Namn på fil {files}")
@@ -127,54 +134,55 @@ while(input("Avsluta? ")!='j'):
       print(f"predicted {clf.predict(xt)}")
       attributesFromCV=multilabel.inverse_transform(clf.predict(xt))
       print(f"attribute :------------------------{attributesFromCV}")
+
       for i, labels in enumerate(attributesFromCV):
-        pass
-       # print(f"input {i}: Med texten:  {x[i]}  ges attributet:")
-       # print(f": {' '.join(labels)}'")
+       pass 
+        #print(f"input {i}: Med texten:  {x[i]}  ges attributet:")
+        #print(f": {' '.join(labels)}'")
          
       
 
 
     # CV=page.extract_text()
       wantedAttributes=['affärsmässig','numerisk analytisk förmåga','kvalitetsmedveten','språklig analytisk förmåga']
-      listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
+      #listOfAttributeCleaned= [str(t) for t in attributesFromCV if t]
       listatest=[]
-
+      realCleanList=[]
       score=0
-      
-      listOfAttributeCleaned = [s.strip('()"').replace("'",',') for s in listOfAttributeCleaned]
+      setOfAttributes=set()
+      #listOfAttributeCleaned = [s.strip('(),"') for s in listOfAttributeCleaned]
+      listOfAttributeCleaned=attributesFromCV
       print(f"lista med attribute {listOfAttributeCleaned}")
+      for cleanAttributes in listOfAttributeCleaned:
+         for tuples in cleanAttributes:
+              realCleanList.append(tuples)
+              setOfAttributes.add(tuples)
       print("---------------------------------------------------------------------------------------------")
       
-      print(type(setOfAttributes))
-      for i in setOfAttributes:
-         print(f"Skriver ut i {i}")
-      setOfAttributes2=[]
+      print("---------------------------------------------------------------------------------------------")
+
       print(f"Set of attributes {setOfAttributes}")
       for i in setOfAttributes:
         if i in wantedAttributes:
-            setOfAttributes2.append(i)
-      for i in listOfAttributeCleaned:
-          #print("___________________________________________________________________________")
-          #print(i)
-          #print(type(i))
+           print("TRÄFF")
+           numberOfExclusiveHitsForProcent=numberOfExclusiveHitsForProcent+1
+      for attribut in realCleanList:
+         if attribut in wantedAttributes:
+            score=score+1
 
-          #print(f"i är : {i}")
-          for a in wantedAttributes:
-              if a in i:
-                 #
-                 #  print(f"skriver ut i {a}")
-                  
-              
-                  #print("___________________________________________________________________________")
-                  #print("poäng")
-                  score=score+1
-          
-      procentOfAttributes=(len(setOfAttributes)/len(wantedAttributes))*100
+      #print(realCleanList)
+ 
+      
+      
+      procentOfAttributes=(numberOfExclusiveHitsForProcent/len(wantedAttributes))*100
       print(len(wantedAttributes))
-      print(len(setOfAttributes))
-      print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {score}")
+      print(numberOfExclusiveHitsForProcent)
+      print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {len(realCleanList)}")
       print(f"Andel av attributen som uppfylls {procentOfAttributes} %")
-
-
+      thisCV={}
+      thisCV={"Score": len(realCleanList),"PercentScore":procentOfAttributes}
+      allCV.update({files:thisCV})
+#print(allCV)
+jsonDict=json.dumps(allCV)
+print(jsonDict)
 

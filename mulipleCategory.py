@@ -23,6 +23,30 @@ print("y= -------------------")
 print(type(dataframe['Attribut'].iloc[0]))
 
 
+
+
+
+stopListVectorizer=TfidfVectorizer(lowercase=True)
+myfile=open("stoplista.txt","r",encoding='utf-8')
+
+
+stopList=[]
+for line in myfile:
+   
+    data=myfile.readline()
+    stopList.append(data)
+myfile.close() 
+
+stopListVectorizer.fit(stopList)
+tokenizedStopWords=stopListVectorizer.get_feature_names_out()
+
+#print(tokenizedStopWords)
+tokenizedStopWords=tokenizedStopWords.tolist()
+
+
+
+
+
 # Rensa och konvertera data till listor av strängar
 def clean_and_convert_to_list(text):
     # Kontrollerar först om 'text' är en sträng
@@ -52,10 +76,10 @@ print(multilabel.classes_)
 
 print("---------------------uppradat------------------------")
 print(pd.DataFrame(y,columns=multilabel.classes_))
-
+print(tokenizedStopWords)
 print("----------------Bygga model------------------")
 dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
-tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words='english')
+tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words=tokenizedStopWords)
 X = tfidf.fit_transform(dataframe['Yrkestitel'])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
@@ -92,18 +116,25 @@ print("----------------------------testa model----------------------")
 
 
 
+while(1):
+  x=[]
+  x.append(input("Testa ord: "))
+  print(x)
+  #print(multilabel.classes_)
+  xt=tfidf.transform(x)
+  print(clf.predict(xt))
 
-x=['Cafébiträde ']
-
-print(x)
-#print(multilabel.classes_)
-xt=tfidf.transform(x)
-print(clf.predict(xt))
-
-print(multilabel.inverse_transform(clf.predict(xt)))
+  print(multilabel.inverse_transform(clf.predict(xt)))
 
 
-print("Utskrift------------",clf.predict(xt))
+  print("Utskrift------------",clf.predict(xt))
+
+  ordstrang=multilabel.inverse_transform(clf.predict(xt))
+  ordstrang=ordstrang[0]
+  print(type(ordstrang))
+  print(ordstrang)
+  for i in ordstrang:
+     print(i)
 
 
 
