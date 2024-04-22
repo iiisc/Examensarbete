@@ -19,8 +19,23 @@ from PyPDF2 import PdfReader
 
 
 listOfTitles=[]
+myfile=open("stoplista.txt","r",encoding='utf-8')
 
 
+stoplistVectorizer=TfidfVectorizer(lowercase=True)
+
+stopList=[]
+for line in myfile:
+   
+    data=myfile.readline()
+    stopList.append(data)
+myfile.close() 
+
+stoplistVectorizer.fit(stopList)
+tokenizedStopWords=stoplistVectorizer.get_feature_names_out()
+
+#print(tokenizedStopWords)
+tokenizedStopWords=tokenizedStopWords.tolist()
 
 
 
@@ -61,49 +76,36 @@ y = multilabel.fit_transform(dataframe['Attribut'])
 
 print("----------------Bygga model------------------")
 dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
-tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words='english')
+#tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words='english')
+tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,2), stop_words=tokenizedStopWords, lowercase=True, )
+
 X = tfidf.fit_transform(dataframe['Yrkestitel'])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
-sgd = SGDClassifier()
-lr = LogisticRegression(solver='lbfgs')
-svc = LinearSVC()
 
 def j_score(y_true, y_pred):
   jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
   return jaccard.mean()*100
-
-
-def print_score(y_pred, clf):
-  print("Clf: ", clf.__class__.__name__)
-  print('Jacard score: {}'.format(j_score(y_test, y_pred)))
-  print('----')
-
-for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
-  clf = OneVsRestClassifier(classifier)
-  clf.fit(X_train, y_train)
-  y_pred = clf.predict(X_test)
-  print_score(y_pred, classifier)
-
-for classifier in [LinearSVC(C=1.5, penalty = 'l1', dual=False)]:
-  clf = OneVsRestClassifier(classifier)
-  clf.fit(X_train, y_train)
-  y_pred = clf.predict(X_test)
-  print_score(y_pred, classifier)  
-
-
-
-
-
-print(multilabel.classes_)
-
 def koppladeattributefun(text,attribute):
    pattern=r'\b('+'|'.join(re.escape(attri) for attri in attribute)+r')\b'
    matches =re.findall(pattern,text,flags=re.IGNORECASE)
    return ', '.join(sorted(set(matches),key=matches.index))
 
-print("------------------------------Läsa CV--------------------")
 while(input("Avsluta? ")!='j'):
+
+  c=input("Välj C ")
+  linres=LinearSVC(C=int(c),penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
+  clf = OneVsRestClassifier(linres)
+  clf.fit(X_train, y_train)
+
+
+
+
+
+  print(multilabel.classes_)
+
+
+  print("------------------------------Läsa CV--------------------")
   pdfFilePath="./uploads/"
   for files in os.listdir(pdfFilePath):
     if files.endswith('.pdf'):
@@ -166,11 +168,12 @@ while(input("Avsluta? ")!='j'):
           #print(f"i är : {i}")
           for a in wantedAttributes:
               if a in i:
-                  print(f"skriver ut i {a}")
+                 #
+                 #  print(f"skriver ut i {a}")
                   
               
-                  print("___________________________________________________________________________")
-                  print("poäng")
+                  #print("___________________________________________________________________________")
+                  #print("poäng")
                   score=score+1
           
       procentOfAttributes=(len(setOfAttributes)/len(wantedAttributes))*100

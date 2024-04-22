@@ -140,71 +140,76 @@ linres=LinearSVC(C=99999999999999999999,penalty='l2', dual=False )
 logres=LogisticRegression()
 
 linres2=LinearSVC(C=99999999999999999999,penalty='l1', dual=False)
-logres2=LogisticRegression(solver="liblinear",multi_class='ovr',penalty='l2',C=1.2)
-
-linres3=LinearSVC(C=99999999999999999999,penalty='l1', dual=False, class_weight="balanced"  )     ##BARA 3 FEL!!!!!!!!
-logres3=LogisticRegression(solver="newton-cg",penalty='l2',C=10)
-
-linres4=LinearSVC(C=99999999999999999999,penalty='l1', dual=False, class_weight="balanced" ,multi_class="ovr" ) ##BARA 3 FEL!!!!!!!!
-logres4=LogisticRegression(solver="newton-cholesky",multi_class='ovr',C=100,class_weight="balanced",penalty="l2")
-
-linres5=LinearSVC(C=99999999999999999999,penalty='l1', dual=False, class_weight="balanced" ,multi_class="crammer_singer")
-logres5=LogisticRegression(solver="liblinear",multi_class='ovr',C=100,class_weight="balanced",dual=False)
-
-#randfor=RandomForestClassifier()
-####LÄGG IN NYA NAMN I LISTAN SÅ TESTAS DESSA
-#classifiers=[linres,logres,linres2,logres2,linres3,logres3,linres4,logres4,linres5,logres5]
-classifiers=[linres4]
+logres2=LogisticRegression(solver="liblinear",multi_class='ovr',penalty='l2',C=1.2, max_iter=5000)
 
 
-print("----------------------------testa model----------------------")
+while(1):
 
-antaltitlar=0
-counter=0
-bestScores={}
-round=0
-roundcounter=0
-for classifier in classifiers:
-  
-  if roundcounter%2==0:
-    round=round+1
+  c=input("Välj C ")
+  linres3=LinearSVC(C=int(c),penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
+  logres3=LogisticRegression(solver="newton-cg",penalty='l2',C=10)
 
-    print(f"-------------------------------------------RUNDA {round} ------------------------------------------------------")
-  roundcounter=roundcounter+1
-  
+  linres4=LinearSVC(C=10,penalty='l1', dual=False, class_weight="balanced" ,multi_class="ovr" ) ##BARA 3 FEL!!!!!!!!
+  logres4=LogisticRegression(solver="newton-cholesky",multi_class='ovr',C=100,class_weight="balanced",penalty="l2")
 
-  clf=OneVsRestClassifier(classifier)
-  clf.fit(X_train, y_train)
+  linres5=LinearSVC(C=99999999999999999999,penalty='l1', dual=False, class_weight="balanced" ,multi_class="crammer_singer")
+  logres5=LogisticRegression(solver="liblinear",multi_class='ovr',C=100,class_weight="balanced",dual=False)
+  #randfor=RandomForestClassifier()
+  ####LÄGG IN NYA NAMN I LISTAN SÅ TESTAS DESSA
+  #classifiers=[linres,logres,linres2,logres2,linres3,logres3,linres4,logres4,linres5,logres5]
+  classifiers=[linres3]
+
+
+  print("----------------------------testa model----------------------")
+
   antaltitlar=0
   counter=0
-  for titlar in dataframe['Yrkestitel']:
-      antaltitlar=antaltitlar+1
+  bestScores={}
+  round=0
+  roundcounter=0
+  for classifier in classifiers:
+    
+    if roundcounter%2==0:
+      round=round+1
 
-      x=[titlar]
+      print(f"-------------------------------------------RUNDA {round} ------------------------------------------------------")
+    roundcounter=roundcounter+1
+    
 
-      #print(x)
-      #print(multilabel.classes_)
-      xt=tfidf.transform(x)
-      #print(clf.predict(xt))
-      temp=multilabel.inverse_transform(clf.predict(xt))
+    clf=OneVsRestClassifier(classifier)
+    clf.fit(X_train, y_train)
+    antaltitlar=0
+    counter=0
+    print(clf.n_features_in_) 
 
-      #print(multilabel.inverse_transform(clf.predict(xt)))
-      if len(temp[0])==0:
-        counter=counter+1
-        #print(f"Har inte kopplats: {titlar}")
-      else:
-        pass
-        ###För att kontrollera vilket jobb som kopplats till vad avkommentera nedanståend två rader
-        #print(f"Har kopplats: {titlar} till:")
-        #print(f"{temp}\n")
-      
-      
-      #print("Utskrift------------",clf.predict(xt))
-      #print("_____________________________________________________________________________________________________________________________________")
-  print(f"Test av classifire {str(classifier)}")
-  print(f"Antal fel {counter} i procent {(counter/antaltitlar)*100} totalt finns det {antaltitlar} titlar")
-  print("")
-  bestScores[classifier]=counter
+    for titlar in dataframe['Yrkestitel']:
+        antaltitlar=antaltitlar+1
+
+        x=[titlar]
+
+        #print(x)
+        #print(multilabel.classes_)
+        xt=tfidf.transform(x)
+        #print(clf.predict(xt))
+        temp=multilabel.inverse_transform(clf.predict(xt))
+
+        #print(multilabel.inverse_transform(clf.predict(xt)))
+        if len(temp[0])==0:
+          counter=counter+1
+          #print(f"Har inte kopplats: {titlar}")
+        else:
+          pass
+          ###För att kontrollera vilket jobb som kopplats till vad avkommentera nedanståend två rader
+          #print(f"Har kopplats: {titlar} till:")
+          #print(f"{temp}\n")
+        
+        
+        #print("Utskrift------------",clf.predict(xt))
+        #print("_____________________________________________________________________________________________________________________________________")
+    print(f"Test av classifire {str(classifier)}")
+    print(f"Antal fel {counter} i procent {(counter/antaltitlar)*100} totalt finns det {antaltitlar} titlar")
+    print("")
+    bestScores[classifier]=counter
 #print(bestScores)
 
 

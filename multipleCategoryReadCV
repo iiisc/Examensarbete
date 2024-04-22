@@ -25,6 +25,7 @@ listOfTitles=[]
 
 
 
+myfile=open("stoplista.txt","r",encoding='utf-8')
 
 
 dataframe=pd.read_excel('testfil2.xlsx')
