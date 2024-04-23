@@ -3,7 +3,6 @@ import numpy as np
 import ast
 import os
 import re
-
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -12,21 +11,19 @@ from openpyxl import load_workbook
 from sklearn.linear_model import SGDClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
-
 from sklearn.multiclass import OneVsRestClassifier
-multilabel = MultiLabelBinarizer()
-allCV={}
 from PyPDF2 import PdfReader
 
+multilabel = MultiLabelBinarizer()
+allCV={}
 listOfTitles=[]
 
 def openLists():
   textList=[]
-  kategori1=open("kategori1.txt","r",encoding='utf-8')
-  for lines in kategori1:
-      data=kategori1.readline()
-      textList.append(data)
-  kategori1.close()    
+  kategori1 = open("kategori1.txt","r",encoding='utf-8')
+  for line in kategori1:
+      textList.append(line.strip())
+  kategori1.close()
   return textList
 
 def stopList():
@@ -35,9 +32,8 @@ def stopList():
   stopList=[]
   for line in myfile:
       stopList.append(line)
- 
- 
   myfile.close() 
+
   stoplistVectorizer.fit(stopList)
   tokenizedStopWords=stoplistVectorizer.get_feature_names_out()
   tokenizedStopWords=tokenizedStopWords.tolist()
@@ -56,9 +52,7 @@ def clean_and_convert_to_list(text):
 # Applicera funktionen på Attribut-kolumnen
 
 def readPDFCV(files, pdfFilePath):
-   
   print("------------------------------Läsa CV--------------------")
-
   if files.endswith('.pdf'):
       pdfPath =pdfFilePath+files  
       print(f"Namn på fil {files}")
@@ -72,15 +66,12 @@ def readPDFCV(files, pdfFilePath):
   return wholeDocument
 
 
-
-
-
 ###ÖPPNA EXCELDOKUMENT
 dataframe=pd.read_excel('testfil2.xlsx')
 #ast.literal_eval(dataframe['Attribut'].iloc[0])
 for i in dataframe['Yrkestitel']:
    listOfTitles.append(dataframe['Yrkestitel'])
-print(f"LISTOFTITLES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::{listOfTitles}")
+##print(f"LISTOFTITLES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::{listOfTitles}")
   
 dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
 excelTraningDataProperties= load_workbook('testfil2.xlsx')
@@ -103,28 +94,12 @@ clf = OneVsRestClassifier(linres)
 clf.fit(X_train, y_train)
 
 
-
-
-
-
-
-
-
-
-
 def j_score(y_true, y_pred):
   jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
   return jaccard.mean()*100
 
 
-
-while(input("Avsluta? (j) ")!='j'):
- # print(openLists())
-
-
-
- 
-
+def run_model():
   if excelTraningDataProperties!=load_workbook("testfil2.xlsx"):
     print("Modellen är inte uppdaterad, vänligen träna om modellen")
 
@@ -142,23 +117,25 @@ while(input("Avsluta? (j) ")!='j'):
       setOfAttributes=set()
       listOfAttributeCleaned=attributesFromCV
       for cleanAttributes in listOfAttributeCleaned:
-         for tuples in cleanAttributes:
+        for tuples in cleanAttributes:
               realCleanList.append(tuples)
               setOfAttributes.add(tuples)
+              
       print("---------------------------------------------------------------------------------------------")
-      
       print("---------------------------------------------------------------------------------------------")
 
       for i in setOfAttributes:
         if i in wantedAttributes:
-           numberOfExclusiveHitsForProcent=numberOfExclusiveHitsForProcent+1
-      for attribut in realCleanList:
-         if attribut in wantedAttributes:
-            score=score+1
+          numberOfExclusiveHitsForProcent=numberOfExclusiveHitsForProcent+1
 
- 
-      
-      
+      scoringDict = {}
+      for attribut in realCleanList:
+        if attribut in wantedAttributes:
+            scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
+            print("Attribut to increment: ", attribut, "new score: ", scoringDict, "\n")
+            score=score+1
+            print("New score: ", score)
+
       procentOfAttributes=(numberOfExclusiveHitsForProcent/len(wantedAttributes))*100
       print(len(wantedAttributes))
       print(numberOfExclusiveHitsForProcent)
@@ -170,3 +147,7 @@ while(input("Avsluta? (j) ")!='j'):
 #print(allCV)
 jsonDict=json.dumps(allCV)
 print(jsonDict)
+
+if __name__ == '__main__':
+  while(input("Avsluta? (j) ")!='j'):
+    run_model()
