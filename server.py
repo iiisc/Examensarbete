@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import ast
 from flask import Flask, render_template, request, redirect, jsonify
 from PyPDF2 import PdfReader
 
@@ -14,13 +15,13 @@ def readPdf(file):
     page = reader.pages[0]
     return(page.extract_text())
 
-@app.route('/')
-def home():
-   return render_template('index.html')
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/')
+def home():
+   return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -41,9 +42,6 @@ def get_score():
         "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
         "RandomCV": {"Score": 1, "PercentScore": 0.1}
     }
-
-    ## Convert nested dict to JSON
-    jsonDict = jsonify(allCV)
 
     df = pd.DataFrame.from_dict(allCV, orient='index')
     df_html = df.to_html()
@@ -102,23 +100,23 @@ def api_get_attributes():
     }
     return(jsonify(all_attributes), 200)
 
-@app.route('/api/score', methods = ['GET', 'POST'])
-def api_score_cv():
-    allCV = { 
-        "CarlsCV": {"Score": 10, "PercentScore": 0.3},
-        "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
-        "RandomCV": {"Score": 1, "PercentScore": 0.1}
-    }
-    return jsonify(allCV, 200)
-
-@app.route('/api/upload', methods = ['POST'])
+@app.route('/api/score_cv', methods = ['POST'])
 def api_upload():
-        files = request.files.getlist("")
-        for file in files:   
+## Tanken är att här ska man ladda upp filen/filerna man vill bedöma, resultaten ska returneras som json.
+## Attributes är en sträng som ska innhålla eftersökta attribut, sannolikt behöver detta göras om från str till json eller något smart
+        files = request.files.getlist("file")
+        file_names = []
+        for file in files:
+            file_names.append(file.filename)
             if file and allowed_file(file.filename):
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-          
-        return "hi"
-    
+        allCV = { 
+            "CarlsCV": {"Score": 10, "PercentScore": 0.3},
+            "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
+            "RandomCV": {"Score": 1, "PercentScore": 0.1}
+        }
+        attributes = ast.literal_eval(request.form.get("attributes"))
+        return jsonify(attributes, file_names, allCV), 200
+
 if __name__ == '__main__':
     app.run()
