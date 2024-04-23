@@ -128,17 +128,25 @@ def run_model():
         if i in wantedAttributes:
           numberOfExclusiveHitsForProcent=numberOfExclusiveHitsForProcent+1
 
+      wantedAttributeScoringDict = {}
       scoringDict = {}
+      
       for attribut in realCleanList:
+        scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
         if attribut in wantedAttributes:
-            scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
-            print("Attribut to increment: ", attribut, "new score: ", scoringDict, "\n")
+            wantedAttributeScoringDict[attribut] = wantedAttributeScoringDict.get(attribut, 0) + 1
             score=score+1
-            print("New score: ", score)
+
+      print("---------------------------------------------------------------------------------------------")
+      print("Score per attribute: ", scoringDict)
+      print("Score per wanted attribute: ", wantedAttributeScoringDict)
+      print("---------------------------------------------------------------------------------------------")
 
       procentOfAttributes=(numberOfExclusiveHitsForProcent/len(wantedAttributes))*100
       print(len(wantedAttributes))
       print(numberOfExclusiveHitsForProcent)
+
+      ## len(realCleanList) ger väl hur många attribut som uppfylls överhuvudtaget, inte nödvändigtvis att de är önskade?
       print(f"Antalet gånger ett attributet uppfylls {wantedAttributes} är {len(realCleanList)}")
       print(f"Andel av attributen som uppfylls {procentOfAttributes} %")
       thisCV={}
