@@ -76,22 +76,21 @@ for i in dataframe['Yrkestitel']:
 dataframe['Attribut'] = dataframe['Attribut'].apply(clean_and_convert_to_list)
 excelTraningDataProperties= load_workbook('testfil2.xlsx')
 
-
-
 ###VECTORIZE/TOKENIZ
-y = multilabel.fit_transform(dataframe['Attribut'])
-print("----------------Bygga model------------------")
-dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
-tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,2), stop_words=stopList(), lowercase=True, )
+def train_model():
+  print("----------------Bygga model------------------")
+  y = multilabel.fit_transform(dataframe['Attribut'])
+  dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
+  tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,2), stop_words=stopList(), lowercase=True, )
 
-X = tfidf.fit_transform(dataframe['Yrkestitel'])
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
+  X = tfidf.fit_transform(dataframe['Yrkestitel'])
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
 
-
-###TRÄNA MODELL
-linres=LinearSVC(C=2,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
-clf = OneVsRestClassifier(linres)
-clf.fit(X_train, y_train)
+  ###TRÄNA MODELL
+  linres=LinearSVC(C=2,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)     ##BARA 3 FEL!!!!!!!!
+  clf = OneVsRestClassifier(linres)
+  clf.fit(X_train, y_train)
+  return tfidf, clf
 
 
 def j_score(y_true, y_pred):
@@ -99,7 +98,7 @@ def j_score(y_true, y_pred):
   return jaccard.mean()*100
 
 
-def run_model():
+def run_model(tfidf, clf):
   if excelTraningDataProperties!=load_workbook("testfil2.xlsx"):
     print("Modellen är inte uppdaterad, vänligen träna om modellen")
 
@@ -130,17 +129,17 @@ def run_model():
 
       wantedAttributeScoringDict = {}
       scoringDict = {}
-      
+
       for attribut in realCleanList:
         scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
         if attribut in wantedAttributes:
             wantedAttributeScoringDict[attribut] = wantedAttributeScoringDict.get(attribut, 0) + 1
             score=score+1
 
-      print("---------------------------------------------------------------------------------------------")
+      print("\n---------------------------------------------------------------------------------------------")
       print("Score per attribute: ", scoringDict)
       print("Score per wanted attribute: ", wantedAttributeScoringDict)
-      print("---------------------------------------------------------------------------------------------")
+      print("---------------------------------------------------------------------------------------------\n")
 
       procentOfAttributes=(numberOfExclusiveHitsForProcent/len(wantedAttributes))*100
       print(len(wantedAttributes))
@@ -157,5 +156,6 @@ jsonDict=json.dumps(allCV)
 print(jsonDict)
 
 if __name__ == '__main__':
+  tfidf, clf = train_model()
   while(input("Avsluta? (j) ")!='j'):
-    run_model()
+    run_model(tfidf, clf)
