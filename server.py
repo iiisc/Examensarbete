@@ -19,6 +19,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def delete_files(fileList:list):
+    for file in fileList:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file)
+        os.remove(filepath)
+        
 @app.route('/')
 def home():
    return render_template('index.html')
@@ -109,11 +114,11 @@ def api_upload_and_score():
             if file and allowed_file(file.filename):
                 file_names.append(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))                
-
         if file_names:
             model = scoringmodel.Model()
             model.train_model()
             result = model.run_model(file_names)
+            delete_files(file_names)
             return jsonify(result), 200
     return "No file with .pdf extension uploaded"
 
