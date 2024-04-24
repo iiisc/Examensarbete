@@ -55,8 +55,6 @@ class Model:
     wholeDocument=""
     if fileName.endswith('.pdf'):
         pdfPath =pdfFilePath+fileName  
-        print(f"Namn på fil {fileName}")
-        print(pdfPath)
         reader = PdfReader(pdfPath)
         for sida in reader.pages:
           wholeDocument+=sida.extract_text()+'\n'
