@@ -101,20 +101,21 @@ def api_get_attributes():
     return(jsonify(all_attributes), 200)
 
 @app.route('/api/score_cv', methods = ['POST'])
-def api_upload():
-## Tanken är att här ska man ladda upp filen/filerna man vill bedöma, resultaten ska returneras som json.
-## Attributes är en sträng som ska innhålla eftersökta attribut, sannolikt behöver detta göras om från str till json eller något smart
+def api_upload_and_score():
     files = request.files.getlist("file")
     file_names = []
-    for file in files:
-        file_names.append(file.filename)
-        if file and allowed_file(file.filename):
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+    if request.files['file'].filename != '':
+        for file in files:
+            if file and allowed_file(file.filename):
+                file_names.append(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))                
 
-    model = scoringmodel.Model()
-    model.train_model()
-    result = model.run_model()
-    return jsonify(result), 200
+        if file_names:
+            model = scoringmodel.Model()
+            model.train_model()
+            result = model.run_model(file_names)
+            return jsonify(result), 200
+    return "No file with .pdf extension uploaded"
 
 if __name__ == '__main__':
     app.run()

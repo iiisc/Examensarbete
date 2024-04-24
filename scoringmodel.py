@@ -52,10 +52,10 @@ class Model:
 
   def readPDFCV(self, fileName: str, pdfFilePath):
     print("------------------------------Läsa CV--------------------")
+    wholeDocument=""
     if fileName.endswith('.pdf'):
         pdfPath =pdfFilePath+fileName  
         print(f"Namn på fil {fileName}")
-        wholeDocument=""
         print(pdfPath)
         reader = PdfReader(pdfPath)
         for sida in reader.pages:
@@ -90,31 +90,30 @@ class Model:
     jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
     return jaccard.mean()*100
 
-  def run_model(self):
+  def run_model(self, fileList:list):
     returnDict = {}
     pdfFilePath="./uploads/"
-    
-    for files in os.listdir(pdfFilePath):
-        CV:str = self.readPDFCV(files,pdfFilePath)
-        x = CV.split()
-        xt = self.tfidf.transform(x)
-        attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
-        realCleanList=[]
-        setOfAttributes=set()
-        listOfAttributeCleaned=attributesFromCV
-        for cleanAttributes in listOfAttributeCleaned:
-          for tuples in cleanAttributes:
-                realCleanList.append(tuples)
-                setOfAttributes.add(tuples)
-                
-        scoringDict = {}
-        for attribut in realCleanList:
-          scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
+    for files in fileList:
+      CV:str = self.readPDFCV(files, pdfFilePath)
+      x = CV.split()
+      xt = self.tfidf.transform(x)
+      attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
+      realCleanList=[]
+      setOfAttributes=set()
+      listOfAttributeCleaned=attributesFromCV
+      for cleanAttributes in listOfAttributeCleaned:
+        for tuples in cleanAttributes:
+              realCleanList.append(tuples)
+              setOfAttributes.add(tuples)
+              
+      scoringDict = {}
+      for attribut in realCleanList:
+        scoringDict[attribut] = scoringDict.get(attribut, 0) + 1
 
-        returnDict.update({files: scoringDict})
+      returnDict.update({files: scoringDict})
     return returnDict
 
 if __name__ == '__main__':
   model = Model()
   model.train_model()
-  print(model.run_model())
+  print(model.run_model(["CV.pdf", "Intyg_carl_lindbom.pdf"]))
