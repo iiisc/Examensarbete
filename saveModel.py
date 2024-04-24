@@ -140,8 +140,7 @@ class Model:
         tfidf=pickle.load(data)
       print("laddad")
   
-      clf.fit(loaded_X_train, loaded_y_train)
-    self.tfidf = tfidf
+§    self.tfidf = tfidf
     self.clf = clf
     return
 

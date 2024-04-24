@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from sklearn.multiclass import OneVsRestClassifier
 from PyPDF2 import PdfReader
+import pickle
 
 class Model:
   def __init__(self):
@@ -59,27 +60,52 @@ class Model:
         for sida in reader.pages:
           wholeDocument+=sida.extract_text()+'\n'
     return wholeDocument
+  def cheackForChanges(self):
+      traningData="testfil2.xlsx"
+      filePath="./"+traningData
+      metaData="./metaData.json"
+
+      excelTraningDataProperties=os.stat(filePath)
+      jsonExcelProperties=json.dumps(excelTraningDataProperties.st_mtime)
+      with open(metaData,'r') as data:
+          oldProperties=data.read()
+      if oldProperties!=str(jsonExcelProperties):
+        with open(metaData, 'w') as outData:
+            outData.write(jsonExcelProperties)
+        return True
+      return False
+      
 
   ###VECTORIZE/TOKENIZ
   def train_model(self):
     print("----------------Bygga model------------------")
+    modelName="model.sav"
+
+   
     ###ÖPPNA EXCELDOKUMENT
     dataframe = pd.read_excel('testfil2.xlsx')
     for i in dataframe['Yrkestitel']:
       self.listOfTitles.append(dataframe['Yrkestitel'])
     dataframe['Attribut'] = (dataframe['Attribut'].apply(self.clean_and_convert_to_list))
-    
+      
     y = self.multilabel.fit_transform(dataframe['Attribut'])
     dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,2), stop_words= self.stopList(), lowercase=True, )
 
     X = tfidf.fit_transform(dataframe['Yrkestitel'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
+      ###TRÄNA MODELL
+      ###SPARA MODEL OCH DATA
 
-    ###TRÄNA MODELL
-    linres=LinearSVC(C=2,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)
-    clf = OneVsRestClassifier(linres)
+    if self.cheackForChanges():
+      linres=LinearSVC(C=2,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)
+      clf = OneVsRestClassifier(linres)
+      pickle.dump(clf,open(modelName,'wb+'))
+    else:
+      clf=pickle.load(open(modelName, 'rb+'))
+  
     clf.fit(X_train, y_train)
+
     self.tfidf = tfidf
     self.clf = clf
     return
@@ -114,4 +140,4 @@ class Model:
 if __name__ == '__main__':
   model = Model()
   model.train_model()
-  print(model.run_model(["CV.pdf", "Intyg_carl_lindbom.pdf"]))
+  print(model.run_model(["CV.pdf"]))
