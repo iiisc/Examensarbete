@@ -90,7 +90,7 @@ class Model:
     jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
     return jaccard.mean()*100
 
-  def run_model(self, fileList:list):
+  def run_model(self):
     returnDict = {}
     pdfFilePath="./uploads/"
     
@@ -117,4 +117,4 @@ class Model:
 if __name__ == '__main__':
   model = Model()
   model.train_model()
-  model.run_model()
+  print(model.run_model())

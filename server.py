@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import ast
+import scoringmodel
 from flask import Flask, render_template, request, redirect, jsonify
 from PyPDF2 import PdfReader
 
@@ -104,19 +104,17 @@ def api_get_attributes():
 def api_upload():
 ## Tanken är att här ska man ladda upp filen/filerna man vill bedöma, resultaten ska returneras som json.
 ## Attributes är en sträng som ska innhålla eftersökta attribut, sannolikt behöver detta göras om från str till json eller något smart
-        files = request.files.getlist("file")
-        file_names = []
-        for file in files:
-            file_names.append(file.filename)
-            if file and allowed_file(file.filename):
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        allCV = { 
-            "CarlsCV": {"Score": 10, "PercentScore": 0.3},
-            "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
-            "RandomCV": {"Score": 1, "PercentScore": 0.1}
-        }
-        attributes = ast.literal_eval(request.form.get("attributes"))
-        return jsonify(attributes, file_names, allCV), 200
+    files = request.files.getlist("file")
+    file_names = []
+    for file in files:
+        file_names.append(file.filename)
+        if file and allowed_file(file.filename):
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+
+    model = scoringmodel.Model()
+    model.train_model()
+    result = model.run_model()
+    return jsonify(result), 200
 
 if __name__ == '__main__':
     app.run()
