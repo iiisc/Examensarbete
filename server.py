@@ -32,26 +32,26 @@ def upload_file():
                 print("File uploaded succesfully")
             else:
                 print("Filetype not allowed")
-
         return redirect(request.url)
 
 @app.route('/score', methods=['GET'])
 def get_score():
-    allCV = { 
-        "CarlsCV": {"Score": 10, "PercentScore": 0.3},
-        "ViktorsCV": {"Score": 100, "PercentScore": 0.9},
-        "RandomCV": {"Score": 1, "PercentScore": 0.1}
-    }
+    all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
+    model = scoringmodel.Model()
+    model.train_model()
+    result = model.run_model(all_files)
 
-    df = pd.DataFrame.from_dict(allCV, orient='index')
-    df_html = df.to_html()
+    df = pd.DataFrame.from_dict(result, orient='index')
+    df.style.set_properties(**{'text-align': 'left'})
+    df_html = df.to_html(classes=["table table-bordered table-striped table-hover"])
+
     return render_template('table.html', table_html = df_html)
 
 @app.route('/get_files', methods=['GET'])
 def get_files():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
     df = pd.DataFrame({'Uploaded files:' : all_files})
-    df_html = df.to_html(index = False)
+    df_html = df.to_html(index = False, classes=["table table-bordered table-striped table-hover"])
     return render_template('table.html', table_html = df_html)
 
 @app.route('/api/available_attributes', methods = ['GET'])
