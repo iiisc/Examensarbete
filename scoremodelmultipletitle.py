@@ -114,13 +114,13 @@ class Model:
     jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
     return jaccard.mean()*100
 
-  def run_model(self, fileList):
+  def run_model(self, fileList:str):
     listWithTitles=["Polis","Brandman","Sjuksköterska","Läkare","Pilot","Lärare","Bagare","Systemutvecklare","Ekonom","Chef"]
     returnDict = {}
     pdfFilePath="./uploads/"
     for i in range(1):
       #CV:str = self.readPDFCV(files, pdfFilePath)
-      CV = fileList
+      CV=fileList.split()
       x=[]
       for words in CV:
         print(f"Ord i CV: {words}")
@@ -149,6 +149,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV = ["Chef Ekonom"]
+  CV="Ekonom Chef Brandman"
   model.train_model()
   print(model.run_model(CV))
