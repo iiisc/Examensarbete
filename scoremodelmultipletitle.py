@@ -82,23 +82,22 @@ class Model:
     print("----------------Bygga model------------------")
     modelName="model2.sav"
 
-   
     ###ÖPPNA EXCELDOKUMENT
-    dataframe = pd.read_excel('testfleratitlar.xlsx')
-    for i in dataframe['Yrkestitel']:
-      self.listOfTitles.append(dataframe['Yrkestitel'])
-    dataframe['Attribut'] = (dataframe['Attribut'].apply(self.clean_and_convert_to_list))
-    y = self.multilabel.fit_transform(dataframe['Attribut'])
+    dataframe = pd.read_excel('carl_test_res.xlsx')
+    for i in dataframe['Combination']:
+      self.listOfTitles.append(dataframe['Combination'])
+    dataframe['Max'] = (dataframe['Max'].apply(self.clean_and_convert_to_list))
+    y = self.multilabel.fit_transform(dataframe['Max'])
     print(f"multilabel är {self.multilabel.classes_}")
-    dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
+    dataframe['Max'] = dataframe['Max'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,1), stop_words= self.stopList(), lowercase=True, )
-    X = tfidf.fit_transform(dataframe['Yrkestitel'])
+    X = tfidf.fit_transform(dataframe['Combination'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
       ###TRÄNA MODELL
       ###SPARA MODEL OCH DATA
     
     if 1==1:
-      linres=LinearSVC(C=2,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)
+      linres=LinearSVC(C=1.1,penalty='l1', dual=False, class_weight="balanced",max_iter=50000)
       clf = OneVsRestClassifier(linres)
       pickle.dump(clf,open(modelName,'wb+'))
     else:
@@ -115,7 +114,7 @@ class Model:
     return jaccard.mean()*100
 
   def run_model(self, fileList:str):
-    listWithTitles=["Polis","Brandman","Sjuksköterska","Snickare","Audionom","Lagerarbetare","Trädgårdsmästare","Vakt","Chafför","Kock"]
+    listWithTitles=["Polis","Brandman","Sjuksköterska","Läkare","Pilot","Lärare","Bagare","Systemutvecklare","Ekonom","Chef"]
     returnDict = {}
     pdfFilePath="./uploads/"
     for i in range(1):
@@ -149,6 +148,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV="Osthyvlar är bra men Chafför och Trädgårdsmästare är också bra"
+  CV="Wrestlare Badvakt Ekonom"
   model.train_model()
   print(model.run_model(CV))

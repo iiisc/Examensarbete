@@ -14,7 +14,7 @@ def createNewRowFromIndex(df):
 
 def getAllCombinations(sourceDf, numberInList:int, numberToCombine:int):
     df = pd.DataFrame()
-    my_list = list(range(0,numberInList))
+    my_list = list(range(0, numberInList))
     all_combinations = combinations(my_list, numberToCombine)
     for i in all_combinations:
         row = createNewRowFromIndex(sourceDf.iloc[list(i)])
@@ -23,24 +23,15 @@ def getAllCombinations(sourceDf, numberInList:int, numberToCombine:int):
 
 if __name__ == '__main__':
     df = pd.read_excel('carl_test.xlsx')
-    df_final = getAllCombinations(df, 3, 2)
+    df_final = getAllCombinations(df, 10, 2)
 
     firstMax = df_final.T.iloc[1:,:].idxmax()
     for i, element in enumerate(firstMax):
         df_final.at[i, element] = 0
     secondMax = df_final.T.iloc[1:,:].idxmax()
 
-    print(firstMax)
-    print(secondMax)
     doubleMax = []
     for i, element in enumerate(firstMax):
         doubleMax.append([element, secondMax[i]])
-    print(doubleMax)
-
-    ##print(df_final)
-
-    ##print(df_final)
-    ##df_final.loc['BESLUTSAM'][0] = 0
-
-    ##print(df_final.apply(lambda x: x.argmax(), axis = 1))
-    ##df_final.to_excel('carl_test_res.xlsx')
+    df_final['Max'] = doubleMax
+    df_final.to_excel('carl_test_res.xlsx', columns = ['Combination', 'Max'])
