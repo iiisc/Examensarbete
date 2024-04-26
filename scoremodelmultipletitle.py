@@ -90,8 +90,9 @@ class Model:
     y = self.multilabel.fit_transform(dataframe['Max'])
     print(f"multilabel är {self.multilabel.classes_}")
     dataframe['Max'] = dataframe['Max'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
-    tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1,1), stop_words= self.stopList(), lowercase=True, )
+    tfidf = TfidfVectorizer(analyzer='word', ngram_range=(2,3), stop_words= self.stopList(), lowercase=True, )
     X = tfidf.fit_transform(dataframe['Combination'])
+    print("VOC: ", tfidf.vocabulary_)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
       ###TRÄNA MODELL
       ###SPARA MODEL OCH DATA
@@ -113,13 +114,13 @@ class Model:
     jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
     return jaccard.mean()*100
 
-  def run_model(self, fileList:str):
+  def run_model(self, fileList):
     listWithTitles=["Polis","Brandman","Sjuksköterska","Läkare","Pilot","Lärare","Bagare","Systemutvecklare","Ekonom","Chef"]
     returnDict = {}
     pdfFilePath="./uploads/"
     for i in range(1):
       #CV:str = self.readPDFCV(files, pdfFilePath)
-      CV=fileList.split()
+      CV = fileList
       x=[]
       for words in CV:
         print(f"Ord i CV: {words}")
@@ -148,6 +149,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV="Ekonom Chef Brandman"
+  CV = ["Chef Ekonom"]
   model.train_model()
   print(model.run_model(CV))
