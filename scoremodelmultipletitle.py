@@ -148,6 +148,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV="Wrestlare Badvakt Ekonom"
+  CV="Ekonom Chef Brandman"
   model.train_model()
   print(model.run_model(CV))

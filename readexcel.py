@@ -21,9 +21,11 @@ def getAllCombinations(sourceDf, numberInList:int, numberToCombine:int):
         df = df._append(row, ignore_index = True)
     return df
 
+
+
 if __name__ == '__main__':
     df = pd.read_excel('carl_test.xlsx')
-    df_final = getAllCombinations(df, 10, 2)
+    df_final = getAllCombinations(df, 10, 3)
 
     firstMax = df_final.T.iloc[1:,:].idxmax()
     for i, element in enumerate(firstMax):
