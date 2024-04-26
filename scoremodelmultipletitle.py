@@ -87,12 +87,14 @@ class Model:
     for i in dataframe['Combination']:
       self.listOfTitles.append(dataframe['Combination'])
     dataframe['Max'] = (dataframe['Max'].apply(self.clean_and_convert_to_list))
+    #dataframe['Max']= dataframe['Max'].to_list()
+    #print( dataframe['Max'])
     y = self.multilabel.fit_transform(dataframe['Max'])
-    print(f"multilabel är {self.multilabel.classes_}")
+    #print(f"multilabel är {self.multilabel.classes_}")
     dataframe['Max'] = dataframe['Max'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(2,3), stop_words= self.stopList(), lowercase=True, )
     X = tfidf.fit_transform(dataframe['Combination'])
-    print("VOC: ", tfidf.vocabulary_)
+    #print("VOC: ", tfidf.vocabulary_)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0) 
       ###TRÄNA MODELL
       ###SPARA MODEL OCH DATA
@@ -120,15 +122,25 @@ class Model:
     pdfFilePath="./uploads/"
     for i in range(1):
       #CV:str = self.readPDFCV(files, pdfFilePath)
-      CV=fileList.split()
+      #CV=fileList.split()
       x=[]
-      for words in CV:
-        print(f"Ord i CV: {words}")
-        if words in listWithTitles:
-            x.append(words)
-            print(f"Jobbtitlet förhoppningsvis: {words}")
-      print(f"listan litet x {x}")
+      x.append(fileList)
+      #for words in CV:
+        #print(f"Ord i CV: {words}")
+       # if words in listWithTitles:
+       #     x.append(words)
+            #print(f"Jobbtitlet förhoppningsvis: {words}")
       
+    
+      #print(f"listan litet x {x}")
+      for titlar in x:
+         a=[]
+         a.append(titlar)
+         xt=self.tfidf.transform(a)
+         attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
+
+         print(f"För titlarna {titlar} ges attributen: {attributesFromCV}")
+         print("-----------------------------------------------------------------------------------------------------------")
       xt = self.tfidf.transform(x)
       attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
       realCleanList=[]
@@ -149,6 +161,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV="Ekonom Chef Brandman"
+  CV="Bagare Tolk chef ","['Bagare', 'Tolk', 'Brandman']","Bagare Ekonom, chef","['Bagare', 'Ekonom', 'Brandman']","['Bagare', 'Chef', 'Brandman']"
   model.train_model()
   print(model.run_model(CV))
