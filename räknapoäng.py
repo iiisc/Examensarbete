@@ -83,15 +83,15 @@ class Model:
     modelName="model2.sav"
 
     ###ÖPPNA EXCELDOKUMENT
-    dataframe = pd.read_excel('carl_test_res.xlsx')
+    dataframe = pd.read_excel('training_data.xlsx')
     for i in dataframe['Combination']:
       self.listOfTitles.append(dataframe['Combination'])
-    dataframe['Max'] = (dataframe['Max'].apply(self.clean_and_convert_to_list))
+    dataframe['Leadership'] = (dataframe['Leadership'].apply(self.clean_and_convert_to_list))
     #dataframe['Max']= dataframe['Max'].to_list()
     #print( dataframe['Max'])
-    y = self.multilabel.fit_transform(dataframe['Max'])
+    y = self.multilabel.fit_transform(dataframe['Leadership'])
     #print(f"multilabel är {self.multilabel.classes_}")
-    dataframe['Max'] = dataframe['Max'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
+    dataframe['Leadership'] = dataframe['Leadership'].apply(lambda x: ' '.join(x)) ##Konverterar till en sträng
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(2,3), stop_words= self.stopList(), lowercase=True, )
     X = tfidf.fit_transform(dataframe['Combination'])
     #print("VOC: ", tfidf.vocabulary_)
@@ -120,6 +120,7 @@ class Model:
     listWithTitles=["Polis","Brandman","Sjuksköterska","Läkare","Pilot","Lärare","Bagare","Systemutvecklare","Ekonom","Chef"]
     returnDict = {}
     pdfFilePath="./uploads/"
+    testframe= pd.read_excel('training_data.xlsx', 'test')
     for i in range(1):
       #CV:str = self.readPDFCV(files, pdfFilePath)
       #CV=fileList.split()
@@ -131,25 +132,45 @@ class Model:
        #     x.append(words)
             #print(f"Jobbtitlet förhoppningsvis: {words}")
       
-    
+      print(x)
       #print(f"listan litet x {x}")
-      for titlar in x:
+      score=0
+      #####---TEST SCORE-----#####
+      for index,titlar in enumerate(testframe['Combination']):
+         attributesFromCV=[]
          a=[]
          a.append(titlar)
+         tempList=[]
          xt=self.tfidf.transform(a)
-         attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
-
+         attributesFromCV=( self.multilabel.inverse_transform(self.clf.predict(xt)))
+         for att in attributesFromCV[0]:
+            tempList.append(att.strip('"()').replace("'", " "))
+         
          print(f"För titlarna {titlar} ges attributen: {attributesFromCV}")
+         tempList2=[]
+         tempList2.append(testframe['Leadership'][index])
+         for index,item in enumerate(tempList):
+            tempList[index]=item.lower()
+         for index,item in enumerate(tempList2):
+            tempList[index]=item.lower()   
+         for attribut in tempList2:
+          print(attribut)
+          print(tempList)
+          if attribut == tempList:
+            print(f"attribute {attribut} att {testframe['Leadership'][index]}" )
+            score=score+1   
+            print("träff")
          print("-----------------------------------------------------------------------------------------------------------")
       xt = self.tfidf.transform(x)
       attributesFromCV = self.multilabel.inverse_transform(self.clf.predict(xt))
+      
+      
       realCleanList=[]
-      setOfAttributes=set()
       listOfAttributeCleaned=attributesFromCV
       for cleanAttributes in listOfAttributeCleaned:
         for tuples in cleanAttributes:
               realCleanList.append(tuples)
-              setOfAttributes.add(tuples)
+              #etOfAttributes.add(tuples)
               
       scoringDict = {}
       for attribut in realCleanList:
@@ -161,6 +182,6 @@ class Model:
 
 if __name__ == '__main__':
   model = Model()
-  CV="Bagare Tolk chef ","['Bagare', 'Tolk', 'Brandman']","Bagare Ekonom, chef","['Bagare', 'Ekonom', 'Brandman']","['Bagare', 'Chef', 'Brandman']"
+  CV="Bagare Tolk chef Bagare', 'Tolk', 'Brandman' Bagare Ekonom, chef 'Bagare', 'Ekonom', 'Brandman' 'Bagare', 'Chef', 'Brandman "
   model.train_model()
   print(model.run_model(CV))
