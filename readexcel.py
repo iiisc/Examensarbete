@@ -39,10 +39,11 @@ def generateTrainingData(sourcePath:str, targetPath:str, fraction:float, sourceS
         df = pd.read_excel(sourcePath, sheet_name = sourceSheetName)
         df_double = prepareDataFrame(getAllCombinations(df, df.shape[0], 2), sourceSheetName)
         df_tripple = prepareDataFrame(getAllCombinations(df, df.shape[0], 3), sourceSheetName)
+
         df_concat = pd.concat([df_double, df_tripple], ignore_index = True)
 
-        ##if not 'Combination' in df_return.columns:
-        df_return['Combination'] = df_concat['Combination']
+        if not 'Combination' in df_return.columns:
+            df_return['Combination'] = df_concat['Combination']
         df_return[sourceSheetName] = df_concat[sourceSheetName]
 
     ## df_train is 80% of total rows
@@ -60,8 +61,10 @@ if __name__ == '__main__':
     sheetNames = pd.ExcelFile('carl_test.xlsx').sheet_names
     generateTrainingData('carl_test.xlsx', 'training_data.xlsx', 0.8, sheetNames)
 
-    """ df_test = pd.read_excel('carl_test.xlsx')
-    test1 = getAllCombinations(df_test, df_test.shape[0], 3)
-    test2 = getAllCombinations(df_test, df_test.shape[0], 3)
-    print(test1)
-    print(test2) """
+    ##df_test = pd.read_excel('carl_test.xlsx')
+    ##test1 = getAllCombinations(df_test, df_test.shape[0], 3)
+    ##test2 = getAllCombinations(df_test, df_test.shape[0], 3)
+    ##print(test1)
+    ##print(test2)
+    ##test_df = prepareDataFrame(test1.drop(['Combination'], axis=1), 'Leadership')
+    ##print(test_df)
