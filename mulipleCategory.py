@@ -82,11 +82,10 @@ dataframe['Attribut'] = dataframe['Attribut'].apply(lambda x: ' '.join(x)) ##Kon
 tfidf = TfidfVectorizer(analyzer='word', max_features=10000, ngram_range=(1,2), stop_words=tokenizedStopWords)
 X = tfidf.fit_transform(dataframe['Yrkestitel'])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
-
+X_train,y_test= tr
 sgd = SGDClassifier()
 lr = LogisticRegression(solver='lbfgs')
 svc = LinearSVC()
-
 def j_score(y_true, y_pred):
   jaccard = np.minimum(y_true, y_pred).sum(axis = 1)/np.maximum(y_true, y_pred).sum(axis = 1)
   return jaccard.mean()*100
