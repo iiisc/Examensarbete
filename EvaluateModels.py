@@ -31,12 +31,6 @@ class carl_model:
         self.df_train = self.clean(df_train)
         self.df_test = self.clean(df_test)
 
-    def train_model():
-        pass
-
-    def run_model():
-        pass
-
 if __name__ == '__main__':
     model = carl_model
     df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
@@ -54,25 +48,29 @@ if __name__ == '__main__':
                       tol=None),
         MultinomialNB(),
         LinearSVC(dual='auto'),
-        RandomForestClassifier(max_depth=5),
-        ##OneVsRestClassifier(SVC()),       
-        ##ComplementNB() 
+        RandomForestClassifier(max_depth=100),
+        OneVsRestClassifier(LinearSVC(dual='auto')),       
+        ComplementNB() 
     ]
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
-    classifier_names = ['KNeighborsClassifier', 'SGDClassifier', 'MultinomialNB', 'LinearSVC', 'RandomForestClassifier']
+    classifier_names = ['KNeighborsClassifier', 
+                        'SGDClassifier', 
+                        'MultinomialNB', 
+                        'LinearSVC', 
+                        'RandomForestClassifier', 
+                        'OneVsRestClassifier',
+                        'ComplementNB']
 
     for classifier in classifiers:
         for category in categories:
-            l1 = {category:[]}
             clf = Pipeline([
-                ('vect', TfidfVectorizer()),
+                ('vect', CountVectorizer()),
                 ('tfidf', TfidfTransformer()),
                 ('clf', classifier)])
 
             clf.fit(df_train.Combination, df_train[category]),
             predicted = clf.predict(df_test.Combination)
-
             number_of_attributes = 0
             points = 0
             for i in enumerate(predicted):
@@ -81,16 +79,9 @@ if __name__ == '__main__':
                     if item in df_test[category][i[0]]:
                         points += 1
                     number_of_attributes += 1
-
             res[category].append(points/number_of_attributes)
-
-            ##print(' --- ')
-            ##print(category)
-            ##print(clf['clf'])
             ##print("np.mean score: ", np.mean(predicted == df_test[category]))
-            ##print("Vår score: ", points/number_of_attributes) 
-    ##print(res)
+
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
     print(resFrame)
-

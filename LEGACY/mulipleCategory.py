@@ -22,10 +22,6 @@ print(dataframe['Attribut'].iloc[0])
 print("y= -------------------")
 print(type(dataframe['Attribut'].iloc[0]))
 
-
-
-
-
 stopListVectorizer=TfidfVectorizer(lowercase=True)
 myfile=open("stoplista.txt","r",encoding='utf-8')
 

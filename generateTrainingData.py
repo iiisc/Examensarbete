@@ -62,10 +62,3 @@ if __name__ == '__main__':
     sheetNames = pd.ExcelFile('carl_test.xlsx').sheet_names
     generateTrainingData('carl_test.xlsx', 'training_data.xlsx', 0.8, sheetNames)
 
-    ##df_test = pd.read_excel('carl_test.xlsx')
-    ##test1 = getAllCombinations(df_test, df_test.shape[0], 3)
-    ##test2 = getAllCombinations(df_test, df_test.shape[0], 3)
-    ##print(test1)
-    ##print(test2)
-    ##test_df = prepareDataFrame(test1.drop(['Combination'], axis=1), 'Leadership')
-    ##print(test_df)
