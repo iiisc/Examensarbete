@@ -9,15 +9,38 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import ComplementNB
 from sklearn.model_selection import RandomizedSearchCV
+from PyPDF2 import PdfReader
+import pickle
+import json
+import os
 
 import pandas as pd
 import numpy as np
 class carl_model:
     def __init__(self):
-        self.df_train = None
-        self.df_test = None
+        df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
+        df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
+        self.df_train = self.clean(df_train)
+        self.df_test = self.clean(df_test)
+        self.modelName="model3.sav"
+        
+        if self.cheackForChanges():
+            self.createModel()
+            self.saveModel()
+            print("Skapar model")
+        else:
+            self.clf=pickle.load(open(self.modelName, 'rb'))
+            print("Laddar model")
 
-    def clean(df):
+
+        self.res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
+        self.categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
+        self.readFiles()
+        self.predictAttributes()
+
+
+
+    def clean(self,df):
         for column in df.columns:
             df[column] = df[column].str.replace('[', '')
             df[column] = df[column].str.replace(']', '')
@@ -31,42 +54,136 @@ class carl_model:
         self.df_train = self.clean(df_train)
         self.df_test = self.clean(df_test)
 
+
+
+    def findJobTitles(self):
+
+        pass
+
+    def saveModel(self):
+      pickle.dump(self.clf,open(self.modelName,'wb'))
+
+
+    def readPDFCV( fileName: str):
+        print("------------------------------Läsa CV--------------------")
+        wholeDocument=""
+        pdfFilePath=""
+        if fileName.endswith('.pdf'):
+            pdfPath =pdfFilePath+fileName  
+            reader = PdfReader(pdfPath)
+            for sida in reader.pages:
+                wholeDocument+=sida.extract_text()+'\n'
+        return wholeDocument
+    
+    def cheackForChanges(self):
+        traningData="training_data.xlsx"
+        filePath="./"+traningData
+        metaData="./metaData.json"
+
+        excelTraningDataProperties=os.stat(filePath)
+        jsonExcelProperties=json.dumps(excelTraningDataProperties.st_mtime)
+        with open(metaData,'r') as data:
+            oldProperties=data.read()
+        if oldProperties!=str(jsonExcelProperties):
+            with open(metaData, 'w') as outData:
+                outData.write(jsonExcelProperties)
+            return True
+        return False
+    
+    def createModel(self):
+        self.classifier=LinearSVC(dual=True)
+        self.tfid=TfidfVectorizer()
+        self.clf = Pipeline([
+                ('vect', TfidfVectorizer(analyzer='word')),
+                ('tfidf', TfidfTransformer()),
+                ('clf', self.classifier)])
+        #self.clf.fit(self.df_train.Combination, self.df_train[category]),
+
+    
+    def predictAttributes(self):
+        predictDict={}
+        for category in self.categories:
+            self.clf.fit(self.df_train.Combination, self.df_train[category]),
+            predicted = self.clf.predict(self.toPredict)
+            predictDict[category]=predicted
+        print(predictDict)
+        return predictDict
+    
+
+
+    def readFiles(self):
+        df=pd.read_excel("carl_test.xlsx")
+        listOfJobTitles=df.Yrkestitel.to_list()
+        filelist= ["CV.pdf"]
+        listOfJobTitlesFromCV=""
+        for files in filelist:
+            CVread=[]
+            CVread.append(carl_model.readPDFCV("cv2.pdf"))      
+            # print(f"CV är ::: {CVread}")
+            jobTitleFromCV=[]
+            for word in CVread[0].split():
+                if word.lower()=="polis":
+                    print("POOOOLLLISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS-----------------------------------------------------------------")
+                    print(f"ord från cv {word.lower()}")
+                    #print(f"lista med jobbtitlar {listOfJobTitles}")
+                if word in listOfJobTitles:
+                    listOfJobTitlesFromCV=listOfJobTitlesFromCV+word+" "
+            print(f"lista av jobtitlar {listOfJobTitlesFromCV}")
+            self.toPredict=[]
+            self.toPredict.append(listOfJobTitlesFromCV)
+
+
+    def runModel(self):
+        pass
 if __name__ == '__main__':
-    model = carl_model
-    df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
-    df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
-    df_train = model.clean(df_train)
-    df_test = model.clean(df_test)
+    model = carl_model()
+    #model.readExcel(model)
+
+    #model.createModel()
+
+    # df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
+    # df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
+    # df_train = model.clean(df_train)
+    # df_test = model.clean(df_test)
 
   
     
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
-    classifier=LinearSVC(dual=True)
+    """     classifier=LinearSVC(dual=True)
     tfid=TfidfVectorizer()
     clf = Pipeline([
                 ('vect', TfidfVectorizer(analyzer='word')),
                 ('tfidf', TfidfTransformer()),
                 ('clf', classifier)])
-    for category in categories:
-            print(f"kategori: ", category)
+    """
 
-            clf.fit(df_train.Combination, df_train[category]),
-            predicted = clf.predict(df_test.Combination)
-
-            testpredict=["LÄKARE, POLIS, LÄRARE"]
-            print(f"attribut för cv: {clf.predict(testpredict)}")
-            number_of_attributes = 0
-            points = 0
-            for i in enumerate(predicted):
-                list = i[1].split(',')
-                for item in list:
-                    if item in df_test[category][i[0]]:
-                        points += 1
-                    number_of_attributes += 1
-            res[category].append(points/number_of_attributes)
-            ##print("np.mean score: ", np.mean(predicted == df_test[category]))
-
-    resFrame = pd.DataFrame(res)
-    resFrame.insert(0, 'Model', classifier)
-    print(resFrame)
+    """ 
+        df=pd.read_excel("carl_test.xlsx")
+        listOfJobTitles=df.Yrkestitel.to_list()
+        filepath="./"
+        filelist= ["CV.pdf"]
+        listOfJobTitlesFromCV=""
+        for files in filelist:
+        CVread=[]
+        CVread.append(carl_model.readPDFCV("cv2.pdf"))      
+        # print(f"CV är ::: {CVread}")
+        jobTitleFromCV=[]
+        for word in CVread[0].split():
+            if word.lower()=="polis":
+                print("POOOOLLLISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS-----------------------------------------------------------------")
+                print(f"ord från cv {word.lower()}")
+                #print(f"lista med jobbtitlar {listOfJobTitles}")
+            if word in listOfJobTitles:
+                listOfJobTitlesFromCV=listOfJobTitlesFromCV+word+" "
+        print(f"lista av jobtitlar {listOfJobTitlesFromCV}")
+        toPredict=[]
+        toPredict.append(listOfJobTitlesFromCV)
+        """
+        ## for category in categories:
+        ##          print(f"kategori: ", category)
+        ##         testpredict=["LÄKARE, POLIS, LÄRARE"]
+    #print(f"attribut för cv: {toPredict} ger {carl_model.predictAttributes(model)}")
+               
+              
+         
