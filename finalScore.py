@@ -16,7 +16,7 @@ import os
 
 import pandas as pd
 import numpy as np
-class carl_model:
+class model:
     def __init__(self):
         df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
         df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
@@ -101,7 +101,7 @@ class carl_model:
 
     
     def predictAttributes(self):
-        predictDict={}
+        predictDict={"Name:" :self.filelist}
         for category in self.categories:
             self.clf.fit(self.df_train.Combination, self.df_train[category]),
             predicted = self.clf.predict(self.toPredict)
@@ -114,11 +114,11 @@ class carl_model:
     def readFiles(self):
         df=pd.read_excel("carl_test.xlsx")
         listOfJobTitles=df.Yrkestitel.to_list()
-        filelist= ["CV.pdf"]
+        self.filelist= ["CV.pdf"]
         listOfJobTitlesFromCV=""
-        for files in filelist:
+        for files in self.filelist:
             CVread=[]
-            CVread.append(carl_model.readPDFCV("cv2.pdf"))      
+            CVread.append(model.readPDFCV("cv2.pdf"))      
             # print(f"CV är ::: {CVread}")
             jobTitleFromCV=[]
             for word in CVread[0].split():
@@ -131,59 +131,9 @@ class carl_model:
             print(f"lista av jobtitlar {listOfJobTitlesFromCV}")
             self.toPredict=[]
             self.toPredict.append(listOfJobTitlesFromCV)
-
+        return self.filelist
 
     def runModel(self):
         pass
 if __name__ == '__main__':
-    model = carl_model()
-    #model.readExcel(model)
-
-    #model.createModel()
-
-    # df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
-    # df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
-    # df_train = model.clean(df_train)
-    # df_test = model.clean(df_test)
-
-  
-    
-    res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
-    categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
-    """     classifier=LinearSVC(dual=True)
-    tfid=TfidfVectorizer()
-    clf = Pipeline([
-                ('vect', TfidfVectorizer(analyzer='word')),
-                ('tfidf', TfidfTransformer()),
-                ('clf', classifier)])
-    """
-
-    """ 
-        df=pd.read_excel("carl_test.xlsx")
-        listOfJobTitles=df.Yrkestitel.to_list()
-        filepath="./"
-        filelist= ["CV.pdf"]
-        listOfJobTitlesFromCV=""
-        for files in filelist:
-        CVread=[]
-        CVread.append(carl_model.readPDFCV("cv2.pdf"))      
-        # print(f"CV är ::: {CVread}")
-        jobTitleFromCV=[]
-        for word in CVread[0].split():
-            if word.lower()=="polis":
-                print("POOOOLLLISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS-----------------------------------------------------------------")
-                print(f"ord från cv {word.lower()}")
-                #print(f"lista med jobbtitlar {listOfJobTitles}")
-            if word in listOfJobTitles:
-                listOfJobTitlesFromCV=listOfJobTitlesFromCV+word+" "
-        print(f"lista av jobtitlar {listOfJobTitlesFromCV}")
-        toPredict=[]
-        toPredict.append(listOfJobTitlesFromCV)
-        """
-        ## for category in categories:
-        ##          print(f"kategori: ", category)
-        ##         testpredict=["LÄKARE, POLIS, LÄRARE"]
-    #print(f"attribut för cv: {toPredict} ger {carl_model.predictAttributes(model)}")
-               
-              
-         
+    model = model()

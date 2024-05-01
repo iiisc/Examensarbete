@@ -57,9 +57,9 @@ def get_score2():
 @app.route('/score', methods=['GET'])
 def get_score():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
-    model = finalScore.carl_model()
+    model = finalScore.model()
     print(model.predictAttributes())
-
+    print(model.readFiles)
     result = model.predictAttributes()
 
     df = pd.DataFrame.from_dict(result, orient='index')
