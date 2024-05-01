@@ -1,17 +1,20 @@
-from sklearn.svm import LinearSVC
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import SGDClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import ComplementNB
-from sklearn.model_selection import RandomizedSearchCV
-
 import pandas as pd
 import numpy as np
+
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+##from sklearn.naive_bayes import MultinomialNB
+##from sklearn.linear_model import SGDClassifier
+##from sklearn.multiclass import OneVsRestClassifier
+##from sklearn.svm import SVC
+##from sklearn.naive_bayes import ComplementNB
+##from sklearn.model_selection import RandomizedSearchCV
+
 class carl_model:
     def __init__(self):
         self.df_train = None
@@ -40,36 +43,33 @@ if __name__ == '__main__':
 
     classifiers = [
         KNeighborsClassifier(n_neighbors=4),
-        SGDClassifier(loss='hinge', 
-                      penalty='l2', 
-                      alpha=1e-3, 
-                      random_state=42, 
-                      max_iter=5, 
-                      tol=None),
-        MultinomialNB(),
+        ##SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42, max_iter=5, tol=None),
+        ##MultinomialNB(),
         LinearSVC(dual='auto'),
         RandomForestClassifier(max_depth=100),
-        OneVsRestClassifier(LinearSVC(dual='auto')),       
-        ComplementNB() 
+        ##OneVsRestClassifier(LinearSVC(dual='auto')),       
+        ##ComplementNB(),
+        DecisionTreeClassifier()
     ]
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
     classifier_names = ['KNeighborsClassifier', 
-                        'SGDClassifier', 
-                        'MultinomialNB', 
-                        'LinearSVC', 
+                        ##'SGDClassifier', 
+                        ##'MultinomialNB', 
+                        'LinearSVC',
                         'RandomForestClassifier', 
-                        'OneVsRestClassifier',
-                        'ComplementNB']
+                        ##'OneVsRestClassifier',
+                        ##'ComplementNB',
+                        'DecisionTree'
+                        ]
 
     for classifier in classifiers:
         for category in categories:
             clf = Pipeline([
                 ('vect', CountVectorizer()),
-                ('tfidf', TfidfTransformer()),
                 ('clf', classifier)])
 
-            clf.fit(df_train.Combination, df_train[category]),
+            clf.fit(df_train.Combination, df_train[category])
             predicted = clf.predict(df_test.Combination)
             number_of_attributes = 0
             points = 0
