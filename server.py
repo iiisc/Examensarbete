@@ -124,14 +124,13 @@ def api_upload_and_score():
         for file in files:
             if file and allowed_file(file.filename):
                 file_names.append(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))                
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))    
         if file_names:
             model = finalScore.model(file_names)
             df = pd.DataFrame()
             df = model.predictAttributes()
             delete_files(file_names)
-        print('FileNames: ', file_names)
-        return jsonify(df.to_dict(orient='index'))
+            return jsonify(df.to_dict(orient='index'))
     return "No file with .pdf extension uploaded"
 
 if __name__ == '__main__':
