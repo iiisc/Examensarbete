@@ -17,13 +17,13 @@ import os
 import pandas as pd
 import numpy as np
 class model:
-    def __init__(self):
-        df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
-        df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
-        self.df_train = self.clean(df_train)
-        self.df_test = self.clean(df_test)
+    def __init__(self, filesToRead:list):
+        self.df_train = self.clean(pd.read_excel('training_data.xlsx', sheet_name = 'train'))
+        self.df_test = self.clean(pd.read_excel('training_data.xlsx', sheet_name = 'test'))
         self.modelName="model3.sav"
-        
+        self.filelist = filesToRead
+        self.toPredict = []
+
         if self.cheackForChanges():
             self.createModel()
             self.saveModel()
@@ -32,13 +32,10 @@ class model:
             self.clf=pickle.load(open(self.modelName, 'rb'))
             print("Laddar model")
 
-
         self.res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
         self.categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
         self.readFiles()
         self.predictAttributes()
-
-
 
     def clean(self,df):
         for column in df.columns:
@@ -54,15 +51,8 @@ class model:
         self.df_train = self.clean(df_train)
         self.df_test = self.clean(df_test)
 
-
-
-    def findJobTitles(self):
-
-        pass
-
     def saveModel(self):
       pickle.dump(self.clf,open(self.modelName,'wb'))
-
 
     def readPDFCV( fileName: str):
         print("------------------------------Läsa CV--------------------")
@@ -99,41 +89,29 @@ class model:
                 ('clf', self.classifier)])
         #self.clf.fit(self.df_train.Combination, self.df_train[category]),
 
-    
     def predictAttributes(self):
         predictDict={"Name:" :self.filelist}
         for category in self.categories:
             self.clf.fit(self.df_train.Combination, self.df_train[category]),
             predicted = self.clf.predict(self.toPredict)
             predictDict[category]=predicted
-        print(predictDict)
-        return predictDict
-    
-
+        returnFrame = pd.DataFrame(predictDict)
+        return returnFrame
 
     def readFiles(self):
+        print('self.filelist: ', self.filelist)
         df=pd.read_excel("carl_test.xlsx")
         listOfJobTitles=df.Yrkestitel.to_list()
-        self.filelist= ["CV.pdf"]
-        listOfJobTitlesFromCV=""
-        for files in self.filelist:
-            CVread=[]
-            CVread.append(model.readPDFCV("cv2.pdf"))      
-            # print(f"CV är ::: {CVread}")
-            jobTitleFromCV=[]
+        for file in self.filelist:
+            listOfJobTitlesFromCV=""
+            CVread=[model.readPDFCV(file)]
             for word in CVread[0].split():
-                if word.lower()=="polis":
-                    print("POOOOLLLISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS-----------------------------------------------------------------")
-                    print(f"ord från cv {word.lower()}")
-                    #print(f"lista med jobbtitlar {listOfJobTitles}")
                 if word in listOfJobTitles:
                     listOfJobTitlesFromCV=listOfJobTitlesFromCV+word+" "
             print(f"lista av jobtitlar {listOfJobTitlesFromCV}")
-            self.toPredict=[]
             self.toPredict.append(listOfJobTitlesFromCV)
-        return self.filelist
+        return
 
-    def runModel(self):
-        pass
 if __name__ == '__main__':
-    model = model()
+    model = model(['läkaresjuksköterska.pdf', 'polisbrandman.pdf'])
+    print(model.predictAttributes())

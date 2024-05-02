@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pickle
+import os
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
@@ -32,7 +34,7 @@ class carl_model:
         df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
         df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
         self.df_train = self.clean(df_train)
-        self.df_test = self.clean(df_test)
+        self.df_test = self.clean(df_test)  
 
 if __name__ == '__main__':
     model = carl_model
@@ -43,33 +45,31 @@ if __name__ == '__main__':
 
     classifiers = [
         KNeighborsClassifier(),
-        ##SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42, max_iter=5, tol=None),
-        ##MultinomialNB(),
         LinearSVC(dual='auto'),
         DecisionTreeClassifier(),
-        RandomForestClassifier(),
-        ##OneVsRestClassifier(LinearSVC(dual='auto')),       
-        ##ComplementNB()
+        RandomForestClassifier()
     ]
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
     classifier_names = ['KNeighborsClassifier', 
-                        ##'SGDClassifier', 
-                        ##'MultinomialNB', 
                         'LinearSVC',
                         'DecisionTree',
-                        'RandomForestClassifier', 
-                        ##'OneVsRestClassifier',
-                        ##'ComplementNB'
+                        'RandomForestClassifier'
                         ]
 
+    
+    j = 0
     for classifier in classifiers:
         for category in categories:
+            save_file = classifier_names[j] + "_" + category
             clf = Pipeline([
                 ('vect', CountVectorizer()),
                 ('clf', classifier)])
 
             clf.fit(df_train.Combination, df_train[category])
+            ## Spara ner en tränad modell
+            pickle.dump(clf, open(os.path.join('Trained_models', save_file), 'wb'))
+
             predicted = clf.predict(df_test.Combination)
             number_of_attributes = 0
             points = 0
@@ -80,8 +80,22 @@ if __name__ == '__main__':
                         points += 1
                     number_of_attributes += 1
             res[category].append(points/number_of_attributes)
-            ##print("np.mean score: ", np.mean(predicted == df_test[category]))
-
+        j += 1
+    
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
     print(resFrame)
+
+    ## Ladda in en sparad modell
+    clf2 = pickle.load(open(os.path.join('Trained_models', 'LinearSVC_Personal'), 'rb'))
+    predicted = clf2.predict(df_test.Combination)
+    number_of_attributes = 0
+    points = 0
+    i = 0
+    for i in enumerate(predicted):
+        list = i[1].split(',')
+        for item in list:
+            if item in df_test['Personal'][i[0]]:
+                points += 1
+            number_of_attributes += 1
+    print(points/number_of_attributes)
