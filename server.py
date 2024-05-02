@@ -57,7 +57,7 @@ def get_score2():
 @app.route('/score', methods=['GET'])
 def get_score():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
-    model = finalScore.model(all_files)
+    model = finalScore.modelApplication(all_files)
     df = model.predictAttributes()
     df.style.set_properties(**{'text-align': 'left'})
     df_html = df.to_html(classes=["table table-bordered table-striped table-hover"])
@@ -126,7 +126,7 @@ def api_upload_and_score():
                 file_names.append(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))    
         if file_names:
-            model = finalScore.model(file_names)
+            model = finalScore.modelApplication(file_names)
             df = pd.DataFrame()
             df = model.predictAttributes()
             delete_files(file_names)

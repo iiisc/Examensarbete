@@ -16,24 +16,25 @@ import os
 
 import pandas as pd
 import numpy as np
-class model:
+class modelApplication:
     def __init__(self, filesToRead:list):
         self.df_train = self.clean(pd.read_excel('training_data.xlsx', sheet_name = 'train'))
         self.df_test = self.clean(pd.read_excel('training_data.xlsx', sheet_name = 'test'))
-        self.modelName="model3.sav"
+        self.modelName="model3.pkl"
         self.filelist = filesToRead
         self.toPredict = []
-
-        if self.cheackForChanges():
-            self.createModel()
-            self.saveModel()
-            print("Skapar model")
-        else:
-            self.clf=pickle.load(open(self.modelName, 'rb'))
-            print("Laddar model")
-
+        self.models={}
         self.res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
-        self.categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
+        self.categories = ['Leadership', 'Social', 'Personal', 'Intellectual']           
+        #if 1==1:
+        if self.cheackForChanges():
+            for category in self.categories:
+                self.createModel(category)
+            print("Skapat model")
+        else:
+            for category in self.categories:
+                self.loadModel(category)
+            print("Laddat model")
         self.readFiles()
         self.predictAttributes()
 
@@ -51,8 +52,13 @@ class model:
         self.df_train = self.clean(df_train)
         self.df_test = self.clean(df_test)
 
-    def saveModel(self):
-      pickle.dump(self.clf,open(self.modelName,'wb'))
+    def saveModel(self,pipeName,category):
+      pickle.dump(pipeName,open(category+".pkl",'wb+'))
+
+    def loadModel(self,category):
+            model=pickle.load(open(category+".pkl", 'rb'))
+            self.models[category]=model           
+            
 
     def readPDFCV(fileName: str):
         print("------------------------------Läsa CV--------------------")
@@ -81,20 +87,25 @@ class model:
             return True
         return False
     
-    def createModel(self):
+    def createModel(self,category):
+  
         self.classifier=LinearSVC(dual=True)
         self.tfid=TfidfVectorizer()
-        self.clf = Pipeline([
+        pipeline = Pipeline([
                 ('vect', TfidfVectorizer(analyzer='word')),
                 ('tfidf', TfidfTransformer()),
                 ('clf', self.classifier)])
-        #self.clf.fit(self.df_train.Combination, self.df_train[category]),
+        pipeline.fit(self.df_train.Combination, self.df_train[category])
+        self.models[category]=pipeline
+
+
+
 
     def predictAttributes(self):
         predictDict={"Name:" :self.filelist}
         for category in self.categories:
-            self.clf.fit(self.df_train.Combination, self.df_train[category]),
-            predicted = self.clf.predict(self.toPredict)
+            model=self.models.get(category)
+            predicted = model.predict(self.toPredict)
             predictDict[category]=predicted
         returnFrame = pd.DataFrame(predictDict)
         return returnFrame
@@ -105,7 +116,7 @@ class model:
         listOfJobTitles=df.Yrkestitel.to_list()
         for file in self.filelist:
             listOfJobTitlesFromCV=""
-            CVread=[model.readPDFCV(file)]
+            CVread=[modelApplication.readPDFCV(file)]
             for word in CVread[0].split():
                 if word in listOfJobTitles:
                     listOfJobTitlesFromCV=listOfJobTitlesFromCV+word+" "
@@ -114,5 +125,5 @@ class model:
         return
 
 if __name__ == '__main__':
-    model = model(['läkaresjuksköterska.pdf', 'polisbrandman.pdf', 'CV.pdf'])
+    model = modelApplication(['läkaresjuksköterska.pdf', 'polisbrandman.pdf', 'CV.pdf'])
     print(model.predictAttributes())
