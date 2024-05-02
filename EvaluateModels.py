@@ -42,14 +42,14 @@ if __name__ == '__main__':
     df_test = model.clean(df_test)
 
     classifiers = [
-        KNeighborsClassifier(n_neighbors=4),
+        KNeighborsClassifier(),
         ##SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42, max_iter=5, tol=None),
         ##MultinomialNB(),
         LinearSVC(dual='auto'),
-        RandomForestClassifier(max_depth=100),
+        DecisionTreeClassifier(),
+        RandomForestClassifier(),
         ##OneVsRestClassifier(LinearSVC(dual='auto')),       
-        ##ComplementNB(),
-        DecisionTreeClassifier()
+        ##ComplementNB()
     ]
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
@@ -57,10 +57,10 @@ if __name__ == '__main__':
                         ##'SGDClassifier', 
                         ##'MultinomialNB', 
                         'LinearSVC',
+                        'DecisionTree',
                         'RandomForestClassifier', 
                         ##'OneVsRestClassifier',
-                        ##'ComplementNB',
-                        'DecisionTree'
+                        ##'ComplementNB'
                         ]
 
     for classifier in classifiers:
