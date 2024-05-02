@@ -57,17 +57,11 @@ def get_score2():
 @app.route('/score', methods=['GET'])
 def get_score():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
-    model = finalScore.model()
-    print(model.predictAttributes())
-    print(model.readFiles)
-    result = model.predictAttributes()
-
-    df = pd.DataFrame.from_dict(result, orient='index')
+    model = finalScore.model(all_files)
+    df = model.predictAttributes()
     df.style.set_properties(**{'text-align': 'left'})
     df_html = df.to_html(classes=["table table-bordered table-striped table-hover"])
-
     return render_template('table.html', table_html = df_html)
-
 
 @app.route('/get_files', methods=['GET'])
 def get_files():
@@ -132,11 +126,12 @@ def api_upload_and_score():
                 file_names.append(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))                
         if file_names:
-            model = scoringmodel.Model()
-            model.train_model()
-            result = model.run_model(file_names)
+            model = finalScore.model(file_names)
+            df = pd.DataFrame()
+            df = model.predictAttributes()
             delete_files(file_names)
-            return jsonify(result), 200
+        print('FileNames: ', file_names)
+        return jsonify(df.to_dict(orient='index'))
     return "No file with .pdf extension uploaded"
 
 if __name__ == '__main__':

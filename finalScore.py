@@ -54,12 +54,13 @@ class model:
     def saveModel(self):
       pickle.dump(self.clf,open(self.modelName,'wb'))
 
-    def readPDFCV( fileName: str):
+    def readPDFCV(fileName: str):
         print("------------------------------Läsa CV--------------------")
         wholeDocument=""
-        pdfFilePath=""
+        pdfFilePath="Uploads"
         if fileName.endswith('.pdf'):
-            pdfPath =pdfFilePath+fileName  
+            pdfPath = os.path.join(pdfFilePath, fileName)
+            print("READPDFCV: ", pdfPath)
             reader = PdfReader(pdfPath)
             for sida in reader.pages:
                 wholeDocument+=sida.extract_text()+'\n'
@@ -113,5 +114,5 @@ class model:
         return
 
 if __name__ == '__main__':
-    model = model(['läkaresjuksköterska.pdf', 'polisbrandman.pdf'])
+    model = model(['läkaresjuksköterska.pdf', 'polisbrandman.pdf', 'CV.pdf'])
     print(model.predictAttributes())
