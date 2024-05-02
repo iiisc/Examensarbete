@@ -140,7 +140,7 @@ class Model:
         tfidf=pickle.load(data)
       print("laddad")
   
-§    self.tfidf = tfidf
+    self.tfidf = tfidf
     self.clf = clf
     return
 
