@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import random
+from statistics import mean
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
@@ -45,7 +47,8 @@ if __name__ == '__main__':
 
     classifiers = [
         KNeighborsClassifier(),
-        LinearSVC(dual='auto'),
+        LinearSVC(dual='auto', C=1.5, class_weight=
+        'balanced'),
         DecisionTreeClassifier(),
         RandomForestClassifier()
     ]
@@ -54,9 +57,9 @@ if __name__ == '__main__':
     classifier_names = ['KNeighborsClassifier', 
                         'LinearSVC',
                         'DecisionTree',
-                        'RandomForestClassifier'
+                        'RandomForestClassifier',
+                        'Random'
                         ]
-
     
     j = 0
     for classifier in classifiers:
@@ -68,7 +71,7 @@ if __name__ == '__main__':
 
             clf.fit(df_train.Combination, df_train[category])
             ## Spara ner en tränad modell
-            pickle.dump(clf, open(os.path.join('Trained_models', save_file), 'wb'))
+            ##pickle.dump(clf, open(os.path.join('Trained_models', save_file), 'wb'))
 
             predicted = clf.predict(df_test.Combination)
             number_of_attributes = 0
@@ -82,20 +85,50 @@ if __name__ == '__main__':
             res[category].append(points/number_of_attributes)
         j += 1
     
+    ## Generate result for just guessing attributes:
+    all_attributes = {
+        'Leadership': ['Ledarskap', 'Tydlig', 'Affärsmässig', 'Strategisk', 'Omdöme', 'Beslutsam', 'Helhetssyn'], 
+        'Personal': ['Personlig Mognad', 'Integritet', 'Självständighet', 'Initiativtagande', 'Självgående', 'Flexibel', 'Stabil', 'Prestationsorienterad', 'Energisk', 'Uthållig', 'Mål och resultatorienterad'], 
+        'Social': ['Samarbetsförmåga', 'Relationsskapande', 'Empatisk förmåga', 'Muntlig kommunikation', 'Lojal', 'Serviceinriktad', 'Övertygande', 'Kulturell medvetenhet', 'Pedagogisk insikt'], 
+        'Intellectual': ['Strukturerad', 'Kvalitetsmedveten', 'Kreativ', 'Specialistkunskap', 'Problemlösande analysförmåga', 'Numerisk analytisk förmåga', 'Språklig analytisk förmåga']}
+
+    random_mean_result = {'Leadership': [], 'Personal': [], 'Social': [], 'Intellectual': []}
+    for j in range(1000):
+        random_predicted = {'Leadership': [], 'Personal': [], 'Social': [], 'Intellectual': []}
+        for row in df_test.T:
+            for category in categories:
+                sample = ', '.join(random.sample(all_attributes[category], k = 2)).upper()
+                random_predicted[category].append(sample)
+
+        for category in categories:
+            number_of_attributes = 0
+            points = 0
+            for i in enumerate(random_predicted[category]):
+                list = i[1].split(',')
+                for item in list:
+                    if item in df_test[category][i[0]]:
+                        points += 1
+                    number_of_attributes += 1
+            random_mean_result[category].append(points/number_of_attributes)
+    for category in categories:
+        ##print(mean(random_mean_result[category]))
+        res[category].append(mean(random_mean_result[category]))
+
+
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
     print(resFrame)
 
     ## Ladda in en sparad modell
-    clf2 = pickle.load(open(os.path.join('Trained_models', 'LinearSVC_Personal'), 'rb'))
-    predicted = clf2.predict(df_test.Combination)
-    number_of_attributes = 0
-    points = 0
-    i = 0
-    for i in enumerate(predicted):
-        list = i[1].split(',')
-        for item in list:
-            if item in df_test['Personal'][i[0]]:
-                points += 1
-            number_of_attributes += 1
-    print(points/number_of_attributes)
+    # clf2 = pickle.load(open(os.path.join('Trained_models', 'LinearSVC_Personal'), 'rb'))
+    # predicted = clf2.predict(df_test.Combination)
+    # number_of_attributes = 0
+    # points = 0
+    # i = 0
+    # for i in enumerate(predicted):
+    #     list = i[1].split(',')
+    #     for item in list:
+    #         if item in df_test['Personal'][i[0]]:
+    #             points += 1
+    #         number_of_attributes += 1
+    # print(points/number_of_attributes)
