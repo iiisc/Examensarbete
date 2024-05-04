@@ -111,13 +111,19 @@ if __name__ == '__main__':
                     number_of_attributes += 1
             random_mean_result[category].append(points/number_of_attributes)
     for category in categories:
-        ##print(mean(random_mean_result[category]))
         res[category].append(mean(random_mean_result[category]))
 
 
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
     print(resFrame)
+
+    ## Klasserna blir ju alltid kombinationer av 2 attribut. Här får man ut de tre med högst sannolikthet
+    proba = clf.predict_proba(df_test.Combination)
+    top_N = np.argsort(proba, axis=1)[:, -3 :]
+    top_n_with_labels = clf.classes_[top_N]
+    print(top_n_with_labels)
+    ###
 
     ## Ladda in en sparad modell
     # clf2 = pickle.load(open(os.path.join('Trained_models', 'LinearSVC_Personal'), 'rb'))
