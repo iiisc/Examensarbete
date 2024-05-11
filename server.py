@@ -40,20 +40,6 @@ def upload_file():
                 print("Filetype not allowed")
         return redirect(request.url)
 
-#@app.route('/score', methods=['GET'])
-def get_score2():
-    all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))
-    model = scoringmodel.Model()
-    model.train_model()
-    result = model.run_model(all_files)
-
-    df = pd.DataFrame.from_dict(result, orient='index')
-    df.style.set_properties(**{'text-align': 'left'})
-    df_html = df.to_html(classes=["table table-bordered table-striped table-hover"])
-
-    return render_template('table.html', table_html = df_html)
-
-
 @app.route('/score', methods=['GET'])
 def get_score():
     all_files = (os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])))

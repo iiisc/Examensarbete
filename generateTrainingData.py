@@ -59,7 +59,7 @@ def generateTrainingData(sourcePath:str, targetPath:str, fraction:float, sourceS
     return 
 
 if __name__ == '__main__':
-    FILE = 'carl_test.xlsx'
+    FILE = 'training.xlsx'
     sheetNames = pd.ExcelFile(FILE).sheet_names
     generateTrainingData(FILE, 'training_data.xlsx', 0.8, sheetNames)
 

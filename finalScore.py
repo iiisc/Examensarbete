@@ -1,14 +1,6 @@
 from sklearn.svm import LinearSVC
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.linear_model import SGDClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import ComplementNB
-from sklearn.model_selection import RandomizedSearchCV
 from PyPDF2 import PdfReader
 import pickle
 import json
@@ -27,7 +19,7 @@ class modelApplication:
         self.res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
         self.categories = ['Leadership', 'Social', 'Personal', 'Intellectual']           
         #if 1==1:
-        if self.cheackForChanges():
+        if self.checkForChanges():
             for category in self.categories:
                 self.createModel(category)
             print("Skapat model")
@@ -59,7 +51,6 @@ class modelApplication:
             model=pickle.load(open(category+".pkl", 'rb'))
             self.models[category]=model           
             
-
     def readPDFCV(fileName: str):
         print("------------------------------Läsa CV--------------------")
         wholeDocument=""
@@ -72,7 +63,7 @@ class modelApplication:
                 wholeDocument+=sida.extract_text()+'\n'
         return wholeDocument
     
-    def cheackForChanges(self):
+    def checkForChanges(self):
         traningData="training_data.xlsx"
         filePath="./"+traningData
         metaData="./metaData.json"
@@ -88,7 +79,6 @@ class modelApplication:
         return False
     
     def createModel(self,category):
-  
         self.classifier=LinearSVC(dual=True)
         self.tfid=TfidfVectorizer()
         pipeline = Pipeline([
@@ -97,9 +87,6 @@ class modelApplication:
                 ('clf', self.classifier)])
         pipeline.fit(self.df_train.Combination, self.df_train[category])
         self.models[category]=pipeline
-
-
-
 
     def predictAttributes(self):
         predictDict={"Name:" :self.filelist}
@@ -112,7 +99,7 @@ class modelApplication:
 
     def readFiles(self):
         print('self.filelist: ', self.filelist)
-        df=pd.read_excel("carl_test.xlsx")
+        df=pd.read_excel("training.xlsx")
         listOfJobTitles=df.Yrkestitel.to_list()
         for file in self.filelist:
             listOfJobTitlesFromCV=""

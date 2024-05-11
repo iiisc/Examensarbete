@@ -1,25 +1,14 @@
 import pandas as pd
-import numpy as np
-import pickle
-import os
 import random
 from statistics import mean
-
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-##from sklearn.naive_bayes import MultinomialNB
-##from sklearn.linear_model import SGDClassifier
-##from sklearn.multiclass import OneVsRestClassifier
-##from sklearn.svm import SVC
-##from sklearn.naive_bayes import ComplementNB
-##from sklearn.model_selection import RandomizedSearchCV
-
-class carl_model:
+class est_model:
     def __init__(self):
         self.df_train = None
         self.df_test = None
@@ -39,7 +28,7 @@ class carl_model:
         self.df_test = self.clean(df_test)  
 
 if __name__ == '__main__':
-    model = carl_model
+    model = est_model
     df_train = pd.read_excel('training_data.xlsx', sheet_name = 'train')
     df_test = pd.read_excel('training_data.xlsx', sheet_name = 'test')
     df_train = model.clean(df_train)
@@ -66,13 +55,10 @@ if __name__ == '__main__':
         for category in categories:
             save_file = classifier_names[j] + "_" + category
             clf = Pipeline([
-                ('vect', CountVectorizer()),
+                ('vect', TfidfVectorizer()),
                 ('clf', classifier)])
 
             clf.fit(df_train.Combination, df_train[category])
-            ## Spara ner en tränad modell
-            ##pickle.dump(clf, open(os.path.join('Trained_models', save_file), 'wb'))
-
             predicted = clf.predict(df_test.Combination)
             number_of_attributes = 0
             points = 0
@@ -126,17 +112,3 @@ if __name__ == '__main__':
     ##top_n_with_labels = clf.classes_[top_N]
     ##print(top_n_with_labels)
     ###
-
-    ## Ladda in en sparad modell
-    # clf2 = pickle.load(open(os.path.join('Trained_models', 'LinearSVC_Personal'), 'rb'))
-    # predicted = clf2.predict(df_test.Combination)
-    # number_of_attributes = 0
-    # points = 0
-    # i = 0
-    # for i in enumerate(predicted):
-    #     list = i[1].split(',')
-    #     for item in list:
-    #         if item in df_test['Personal'][i[0]]:
-    #             points += 1
-    #         number_of_attributes += 1
-    # print(points/number_of_attributes)
