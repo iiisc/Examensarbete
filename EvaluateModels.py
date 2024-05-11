@@ -116,13 +116,15 @@ if __name__ == '__main__':
 
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
-    print(resFrame)
+    print(resFrame.round(decimals=4))
+
+    resFrame.to_excel('Results_Evaluated_Models.xlsx', sheet_name='Evaluated Models', index=False)
 
     ## Klasserna blir ju alltid kombinationer av 2 attribut. Här får man ut de tre med högst sannolikthet
-    proba = clf.predict_proba(df_test.Combination)
-    top_N = np.argsort(proba, axis=1)[:, -3 :]
-    top_n_with_labels = clf.classes_[top_N]
-    print(top_n_with_labels)
+    ##proba = clf.predict_proba(df_test.Combination)
+    ##top_N = np.argsort(proba, axis=1)[:, -3 :]
+    ##top_n_with_labels = clf.classes_[top_N]
+    ##print(top_n_with_labels)
     ###
 
     ## Ladda in en sparad modell
