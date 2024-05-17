@@ -36,8 +36,7 @@ if __name__ == '__main__':
 
     classifiers = [
         KNeighborsClassifier(),
-        LinearSVC(dual='auto', C=1.5, class_weight=
-        'balanced'),
+        LinearSVC(dual='auto'),
         DecisionTreeClassifier(),
         RandomForestClassifier()
     ]

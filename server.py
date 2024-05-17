@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import scoringmodel
 from flask import Flask, render_template, request, redirect, jsonify
 from PyPDF2 import PdfReader
 import finalScore
@@ -120,4 +119,5 @@ def api_upload_and_score():
     return "No file with .pdf extension uploaded"
 
 if __name__ == '__main__':
-    app.run()
+    app.debug = True
+    app.run(host="0.0.0.0", port=5000)
