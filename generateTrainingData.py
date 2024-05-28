@@ -40,7 +40,6 @@ def generateTrainingData(sourcePath:str, targetPath:str, fraction:float, sourceS
         df_double = prepareDataFrame(getAllCombinations(df, df.shape[0], 2), sourceSheetName)
         df_tripple = prepareDataFrame(getAllCombinations(df, df.shape[0], 3), sourceSheetName)
         df_quad = prepareDataFrame(getAllCombinations(df, df.shape[0], 4), sourceSheetName)
-
         df_concat = pd.concat([df_double, df_tripple, df_quad], ignore_index = True)
 
         if not 'Combination' in df_return.columns:
