@@ -5,9 +5,9 @@ from PyPDF2 import PdfReader
 import pickle
 import json
 import os
-
 import pandas as pd
 import numpy as np
+
 class modelApplication:
     def __init__(self, filesToRead:list):
         self.df_train = self.clean(pd.read_excel('training_data.xlsx', sheet_name = 'train'))
