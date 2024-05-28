@@ -41,6 +41,7 @@ if __name__ == '__main__':
         RandomForestClassifier()
     ]
     res = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
+    res_train = {'Leadership':[], 'Social':[], 'Personal':[], 'Intellectual':[]}
     categories = ['Leadership', 'Social', 'Personal', 'Intellectual']
     classifier_names = ['KNeighborsClassifier', 
                         'LinearSVC',
@@ -48,15 +49,20 @@ if __name__ == '__main__':
                         'RandomForestClassifier',
                         'Random'
                         ]
+    classifier_names_train = ['KNeighborsClassifier_train', 
+                        'LinearSVC_train',
+                        'DecisionTree_train',
+                        'RandomForestClassifier_train',
+                        'Random'
+                        ]    
     
-    j = 0
     for classifier in classifiers:
         for category in categories:
-            save_file = classifier_names[j] + "_" + category
             clf = Pipeline([
                 ('vect', TfidfVectorizer()),
                 ('clf', classifier)])
 
+            ## Testa på test
             clf.fit(df_train.Combination, df_train[category])
             predicted = clf.predict(df_test.Combination)
             number_of_attributes = 0
@@ -68,8 +74,23 @@ if __name__ == '__main__':
                         points += 1
                     number_of_attributes += 1
             res[category].append(points/number_of_attributes)
-        j += 1
+
+            ## Testa på train
+            predicted = clf.predict(df_train.Combination)
+            number_of_attributes = 0
+            points = 0
+            for i in enumerate(predicted):
+                list = i[1].split(',')
+                for item in list:
+                    if item in df_train[category][i[0]]:
+                        points += 1
+                    number_of_attributes += 1
+            res_train[category].append(points/number_of_attributes)
+
     
+
+
+
     ## Generate result for just guessing attributes:
     all_attributes = {
         'Leadership': ['Ledarskap', 'Tydlig', 'Affärsmässig', 'Strategisk', 'Omdöme', 'Beslutsam', 'Helhetssyn'], 
@@ -97,13 +118,23 @@ if __name__ == '__main__':
             random_mean_result[category].append(points/number_of_attributes)
     for category in categories:
         res[category].append(mean(random_mean_result[category]))
+        res_train[category].append(mean(random_mean_result[category]))
 
 
     resFrame = pd.DataFrame(res)
     resFrame.insert(0, 'Model', classifier_names)
-    print(resFrame.round(decimals=4))
+    ##print(resFrame.round(decimals=4))
 
-    resFrame.to_excel('Results_Evaluated_Models.xlsx', sheet_name='Evaluated Models', index=False)
+    resFrame_train = pd.DataFrame(res_train)
+    resFrame_train.insert(0, 'Model', classifier_names_train)
+    ##print(resFrame_train.round(decimals=4))
+
+    big_frame = pd.DataFrame(pd.concat([resFrame, resFrame_train]))
+    big_frame = big_frame.sort_values('Model')
+    print(big_frame)
+
+    with pd.ExcelWriter('Results_Evaluated_Models.xlsx', engine='openpyxl', mode="a", if_sheet_exists='replace') as writer:
+        big_frame.to_excel(writer, sheet_name='Evaluated Models', index=False)
 
     ## Klasserna blir ju alltid kombinationer av 2 attribut. Här får man ut de tre med högst sannolikthet
     ##proba = clf.predict_proba(df_test.Combination)
